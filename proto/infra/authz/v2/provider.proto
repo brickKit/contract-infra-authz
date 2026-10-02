@@ -1,0 +1,550 @@
+// Provider contract of the authz slot family, authz/2.0.
+//
+// Implemented by every member of the family (infra/authz, infra/authz-static,
+// infra/authz-openfga). It is a system-plane service (foundations 14): it is
+// never routed through the edge, every call carries the metadata be-caller,
+// and a caller reaches it only through the shared address AUTHZ_URL, never
+// through a dependency edge to a member.
+//
+// Rules for this file:
+// - Additive only within infra.authz.v2 (buf breaking, FILE). A breaking
+//   change is a new package infra.authz.v3.
+// - Every rpc states its idempotency_level; writes that take an
+//   idempotency_key are IDEMPOTENT.
+// - Batch limits are stated in comments; when be-protocol's
+//   be/v1/limits.proto is tagged they become (be.v1.max_items) options,
+//   which is a source-compatible addition.
+// - An rpc that belongs to an optional capability the member does not
+//   declare answers UNIMPLEMENTED with ErrorInfo{reason:
+//   CAPABILITY_UNAVAILABLE, domain: "be", metadata: {capability: <name>}}.
+// - Wire shapes that also exist as JSON (bundle, changes, tuples) are
+//   normative in their JSON Schema; the messages here carry the same content.
+//
+// The meaning of levels, values, profiles and delegations (how a decision
+// is computed) is in EVALUATION.md; this file only carries the data.
+syntax = "proto3";
+
+package infra.authz.v2;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/brickKit/contract-infra-authz/v2/gen/go/infra/authz/v2;authzv2";
+
+// AuthzProvider is the service every member implements.
+service AuthzProvider {
+  // ResolveClaims gives the IAM member the authorisation claims of a user
+  // at login and at refresh. Never cached by the caller. Capability: core.
+  rpc ResolveClaims(ResolveClaimsRequest) returns (ResolveClaimsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // GetBundle carries the same JSON as GET /authz/v2/bundle. Capability: core.
+  rpc GetBundle(GetBundleRequest) returns (GetBundleResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // GetCatalog returns the catalogue the member holds and its digest
+  // (catalog_digest in the bundle). Capability: core.
+  rpc GetCatalog(GetCatalogRequest) returns (GetCatalogResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // BatchGetRoles reads roles by code, at most 500 codes. Capability: core.
+  rpc BatchGetRoles(BatchGetRolesRequest) returns (BatchGetRolesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // ReadChanges is the changefeed (same content as GET /authz/v2/changes).
+  // Capability: sharing or relation_sync.
+  rpc ReadChanges(ReadChangesRequest) returns (ReadChangesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // ReadTuples is the snapshot a consumer rebuilds from after a 410
+  // (same content as GET /authz/v2/tuples). Capability: sharing or
+  // relation_sync.
+  rpc ReadTuples(ReadTuplesRequest) returns (ReadTuplesResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // WriteTuples writes or deletes authz-owned tuples (shares). Called only
+  // by the owning component's _shares endpoint after its local eligibility
+  // check; be-caller must be the type's owner_component. Capability: sharing.
+  rpc WriteTuples(WriteTuplesRequest) returns (WriteTuplesResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
+
+  // Check answers whether one of the relations holds between the principal
+  // and the object, including any derivation the member can do.
+  // Capability: check.
+  rpc Check(CheckRequest) returns (CheckResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // BatchCheck is Check for at most 500 items. Capability: check.
+  rpc BatchCheck(BatchCheckRequest) returns (BatchCheckResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // ListObjects lists the ids of one type the principal reaches through the
+  // relations, capped by list_objects.max_results. Capability: graph and
+  // list_objects.
+  rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // Explain says which grants give, or which are missing for, a key.
+  // Capability: core (facts); explain_paths adds relation paths.
+  rpc Explain(ExplainRequest) returns (ExplainResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+
+  // CreateDelegation records an on_behalf or act_as delegation. Called by
+  // the IAM member's token exchange (act_as) or by the admin and
+  // self-service REST of the member itself (on_behalf). Capability:
+  // delegation.
+  rpc CreateDelegation(CreateDelegationRequest) returns (CreateDelegationResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
+
+  // RevokeDelegation ends a delegation at once; its grant id goes into
+  // revoked_grants. Revoking a revoked delegation returns it unchanged.
+  // Capability: delegation.
+  rpc RevokeDelegation(RevokeDelegationRequest) returns (RevokeDelegationResponse) {
+    option idempotency_level = IDEMPOTENT;
+  }
+
+  // BatchGetDelegations reads delegations by id, at most 500 ids.
+  // Capability: delegation.
+  rpc BatchGetDelegations(BatchGetDelegationsRequest) returns (BatchGetDelegationsResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+}
+
+// Level is the data-scope level of a key: own < dept < subtree < all.
+enum Level {
+  LEVEL_UNSPECIFIED = 0;
+  LEVEL_OWN = 1;
+  LEVEL_DEPT = 2;
+  LEVEL_SUBTREE = 3;
+  LEVEL_ALL = 4;
+}
+
+// ActorKind is the kind of an acting party (the act claim).
+enum ActorKind {
+  ACTOR_KIND_UNSPECIFIED = 0;
+  ACTOR_KIND_USER = 1;
+  // Reserved (A4): no member issues or accepts it in 2.0.
+  ACTOR_KIND_AGENT = 2;
+  ACTOR_KIND_SVC = 3;
+}
+
+// KeyType is the type of a permission key.
+enum KeyType {
+  KEY_TYPE_UNSPECIFIED = 0;
+  KEY_TYPE_PAGE = 1;
+  KEY_TYPE_ACTION = 2;
+  KEY_TYPE_FIELD = 3;
+}
+
+// DelegationMode says how a delegation acts.
+enum DelegationMode {
+  DELEGATION_MODE_UNSPECIFIED = 0;
+  // The delegate uses their own token; the delegator's sub is merged into
+  // the delegate's owners and subjects for the delegated keys.
+  DELEGATION_MODE_ON_BEHALF = 1;
+  // A token is issued whose act names the acting party and whose ceil names
+  // the ceiling profiles (agents, impersonation).
+  DELEGATION_MODE_ACT_AS = 2;
+}
+
+// ChangeOp is the operation of one changefeed entry.
+enum ChangeOp {
+  CHANGE_OP_UNSPECIFIED = 0;
+  CHANGE_OP_UPSERT = 1;
+  CHANGE_OP_DELETE = 2;
+}
+
+// ReasonKind classifies one fact of an explanation.
+enum ReasonKind {
+  REASON_KIND_UNSPECIFIED = 0;
+  REASON_KIND_ROLE_KEY = 1;
+  REASON_KIND_LEVEL = 2;
+  REASON_KIND_DIMENSION = 3;
+  REASON_KIND_SHARE = 4;
+  REASON_KIND_RELATION = 5;
+  REASON_KIND_DELEGATION = 6;
+  REASON_KIND_CEILING = 7;
+  REASON_KIND_FIELD = 8;
+  REASON_KIND_CAPABILITY = 9;
+}
+
+// Actor is an acting party; act nests for a chain (RFC 8693 section 4.1).
+message Actor {
+  string sub = 1;
+  ActorKind kind = 2;
+  Actor act = 3;
+}
+
+// Principal is built by the caller's runtime from verified token claims.
+message Principal {
+  string sub = 1;
+  repeated string roles = 2;
+  // Empty when no department is assigned; never read as the root.
+  string dept_path = 3;
+  string tenant_id = 4;
+  Actor act = 5;
+  // Ceiling profile codes.
+  repeated string ceil = 6;
+  // Delegation grant id.
+  string dg = 7;
+  // The token's iat, for stale checks on the provider side.
+  google.protobuf.Timestamp issued_at = 8;
+}
+
+// ObjectRef names one record of a resource type.
+message ObjectRef {
+  // <domain>.<name>.<aggregate>, registered in registry/resource-types.tsv.
+  string type = 1;
+  string id = 2;
+}
+
+// Tuple is one direct relation between an object and a subject.
+message Tuple {
+  ObjectRef object = 1;
+  string relation = 2;
+  // user:<sub> | role:<code> | dept:<path> | dept_tree:<path>
+  string subject = 3;
+  // Unset: never expires. Exclusive.
+  google.protobuf.Timestamp expires_at = 4;
+}
+
+// Consistency asks for an answer at least as fresh as a revision.
+message Consistency {
+  // A revision (decimal int64); empty means as fresh as cheaply possible.
+  string at_least_revision = 1;
+}
+
+// Reason is one fact of a decision or an explanation.
+message Reason {
+  ReasonKind kind = 1;
+  string source = 2;
+  string detail = 3;
+}
+
+// ResolveClaimsRequest names the user.
+message ResolveClaimsRequest {
+  string sub = 1;
+}
+
+// ResolveClaimsResponse carries the authorisation claims of the user.
+message ResolveClaimsResponse {
+  // Every unexpired role of the user, own roles (u:<sub>) included.
+  repeated string roles = 1;
+  // Empty when no department is assigned.
+  string dept_path = 2;
+  string tenant_id = 3;
+  // The member's revision when the claims were read.
+  string revision = 4;
+}
+
+// GetBundleRequest may carry the ETag the caller holds.
+message GetBundleRequest {
+  string if_none_match = 1;
+}
+
+// GetBundleResponse carries the bundle JSON (schemas/bundle.schema.json).
+message GetBundleResponse {
+  // Empty when not_modified.
+  bytes json = 1;
+  string etag = 2;
+  bool not_modified = 3;
+}
+
+// GetCatalogRequest is empty.
+message GetCatalogRequest {}
+
+// GetCatalogResponse is the catalogue (schemas/catalog.schema.json).
+message GetCatalogResponse {
+  repeated KeyEntry keys = 1;
+  repeated DimensionEntry dimensions = 2;
+  repeated ResourceTypeEntry resource_types = 3;
+  // sha256:<hex>, equal to the bundle's catalog_digest.
+  string digest = 4;
+}
+
+// KeyEntry is one permission key of the catalogue.
+message KeyEntry {
+  string key = 1;
+  string title = 2;
+  KeyType type = 3;
+  string owner_component = 4;
+  // Empty when in use.
+  string deprecated = 5;
+  // Reserved (A4): shape only, nothing fills or reads it in 2.0.
+  optional bool delegable = 6;
+}
+
+// DimensionEntry is one data-scope dimension.
+message DimensionEntry {
+  string dimension = 1;
+  // identity | resource
+  string kind = 2;
+  string owner_component = 3;
+}
+
+// ResourceTypeEntry is one resource type with its relations.
+message ResourceTypeEntry {
+  string type = 1;
+  string owner_component = 2;
+  string view_key = 3;
+  repeated string keys = 4;
+  repeated string dimensions = 5;
+  repeated RelationEntry relations = 6;
+  ShareRule share = 7;
+  // direct | graph
+  string derivation = 8;
+}
+
+// RelationEntry is one relation of a resource type.
+message RelationEntry {
+  string name = 1;
+  repeated string includes = 2;
+  repeated string grants = 3;
+  // authz | component
+  string owned_by = 4;
+}
+
+// ShareRule says who may share a type and how.
+message ShareRule {
+  string key = 1;
+  repeated string relations = 2;
+  // user | role | dept | dept_tree
+  repeated string subjects = 3;
+}
+
+// BatchGetRolesRequest lists role codes, at most 500.
+message BatchGetRolesRequest {
+  repeated string codes = 1;
+}
+
+// BatchGetRolesResponse lists the roles found, in request order; unknown
+// codes are omitted.
+message BatchGetRolesResponse {
+  repeated Role roles = 1;
+}
+
+// Role is a role with its keys and its data-scope assignment.
+message Role {
+  string code = 1;
+  string name = 2;
+  bool is_system = 3;
+  repeated string keys = 4;
+  map<string, Level> levels = 5;
+  Level default_level = 6;
+  map<string, ValueList> values = 7;
+  google.protobuf.Timestamp valid_from = 8;
+  google.protobuf.Timestamp valid_until = 9;
+  int64 version = 10;
+}
+
+// ValueList is the values of one dimension.
+message ValueList {
+  repeated string values = 1;
+}
+
+// ReadChangesRequest reads the changefeed after a revision.
+message ReadChangesRequest {
+  repeated string types = 1;
+  // The last revision the caller applied.
+  string after = 2;
+  // 1..500; 0 means 500.
+  int32 limit = 3;
+}
+
+// ReadChangesResponse is one page of the changefeed. An after the member
+// cannot serve completely answers OUT_OF_RANGE (REST 410).
+message ReadChangesResponse {
+  repeated Change changes = 1;
+  string next = 2;
+  string watermark = 3;
+}
+
+// Change is one changefeed entry.
+message Change {
+  string revision = 1;
+  ChangeOp op = 2;
+  Tuple tuple = 3;
+}
+
+// ReadTuplesRequest reads a snapshot of one type.
+message ReadTuplesRequest {
+  string type = 1;
+  string cursor = 2;
+  // 1..1000; 0 means 1000.
+  int32 page_size = 3;
+}
+
+// ReadTuplesResponse is one page of the snapshot; all pages of one walk
+// carry the same revision.
+message ReadTuplesResponse {
+  repeated Tuple tuples = 1;
+  string next_cursor = 2;
+  string revision = 3;
+}
+
+// WriteTuplesRequest writes and deletes authz-owned tuples atomically.
+message WriteTuplesRequest {
+  repeated Tuple writes = 1;
+  repeated Tuple deletes = 2;
+  // Same key with the same body returns the first revision; with another
+  // body INVALID_ARGUMENT / IDEMPOTENCY_MISMATCH.
+  string idempotency_key = 3;
+  // The person who shared, with the act chain when delegated.
+  Actor actor = 4;
+  // The owning component ID; must equal be-caller.
+  string source = 5;
+}
+
+// WriteTuplesResponse carries the revision of the write.
+message WriteTuplesResponse {
+  string revision = 1;
+}
+
+// CheckItem is one object and the relations any of which suffices.
+message CheckItem {
+  ObjectRef object = 1;
+  repeated string relations = 2;
+  // Facts the owner knows and the member does not (OpenFGA contextual
+  // tuples); graph types only.
+  repeated Tuple contextual = 3;
+}
+
+// CheckRequest checks one item for a principal and a key.
+message CheckRequest {
+  Principal principal = 1;
+  // The key being exercised; needed to expand on_behalf delegations.
+  string key = 2;
+  CheckItem item = 3;
+  Consistency consistency = 4;
+}
+
+// CheckResponse is the answer for one item.
+message CheckResponse {
+  bool allowed = 1;
+  repeated Reason via = 2;
+  string revision = 3;
+}
+
+// BatchCheckRequest checks at most 500 items for one principal and key.
+message BatchCheckRequest {
+  Principal principal = 1;
+  string key = 2;
+  repeated CheckItem items = 3;
+  Consistency consistency = 4;
+}
+
+// BatchCheckResponse answers in request order.
+message BatchCheckResponse {
+  repeated CheckResponse results = 1;
+}
+
+// ListObjectsRequest lists ids of one type.
+message ListObjectsRequest {
+  Principal principal = 1;
+  string key = 2;
+  string type = 3;
+  repeated string relations = 4;
+  // At most list_objects.max_results; 0 means the cap.
+  int32 page_size = 5;
+  Consistency consistency = 6;
+}
+
+// ListObjectsResponse is capped, never paged: truncated says the cap was hit.
+message ListObjectsResponse {
+  repeated string ids = 1;
+  bool truncated = 2;
+  string revision = 3;
+}
+
+// ExplainRequest asks why a key is or is not available.
+message ExplainRequest {
+  Principal principal = 1;
+  string key = 2;
+  // Optional; without it the answer covers the key alone.
+  ObjectRef object = 3;
+}
+
+// ExplainResponse lists the facts; paths only with explain_paths.
+message ExplainResponse {
+  bool allowed = 1;
+  repeated Reason reasons = 2;
+  repeated Reason missing = 3;
+  repeated RelationPath paths = 4;
+}
+
+// RelationPath is one chain of relations from subject to object.
+message RelationPath {
+  repeated Tuple hops = 1;
+}
+
+// CreateDelegationRequest describes a delegation.
+message CreateDelegationRequest {
+  string idempotency_key = 1;
+  DelegationMode mode = 2;
+  string from_sub = 3;
+  Actor to = 4;
+  // act_as: the ceiling profiles the issued token will carry.
+  repeated string profiles = 5;
+  // on_behalf: the keys delegated; each must be held by from_sub.
+  repeated string keys = 6;
+  google.protobuf.Timestamp valid_from = 7;
+  google.protobuf.Timestamp valid_until = 8;
+  Actor created_by = 9;
+  string reason = 10;
+}
+
+// CreateDelegationResponse carries the delegation and the revision.
+message CreateDelegationResponse {
+  Delegation delegation = 1;
+  string revision = 2;
+}
+
+// Delegation is a recorded delegation.
+message Delegation {
+  string id = 1;
+  DelegationMode mode = 2;
+  string from_sub = 3;
+  Actor to = 4;
+  repeated string profiles = 5;
+  repeated string keys = 6;
+  google.protobuf.Timestamp valid_from = 7;
+  google.protobuf.Timestamp valid_until = 8;
+  Actor created_by = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp revoked_at = 11;
+  string reason = 12;
+}
+
+// RevokeDelegationRequest ends a delegation.
+message RevokeDelegationRequest {
+  string id = 1;
+  Actor actor = 2;
+  string reason = 3;
+}
+
+// RevokeDelegationResponse carries the delegation and the revision.
+message RevokeDelegationResponse {
+  Delegation delegation = 1;
+  string revision = 2;
+}
+
+// BatchGetDelegationsRequest lists delegation ids, at most 500.
+message BatchGetDelegationsRequest {
+  repeated string ids = 1;
+}
+
+// BatchGetDelegationsResponse lists the delegations found, in request order.
+message BatchGetDelegationsResponse {
+  repeated Delegation delegations = 1;
+}

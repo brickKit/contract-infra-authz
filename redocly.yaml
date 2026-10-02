@@ -1,0 +1,9 @@
+extends:
+  - recommended
+rules:
+  # The provider plane is system traffic and has no user security on purpose.
+  security-defined: off
+  # 4xx responses are documented per operation where they occur.
+  operation-4xx-response: off
+  # The family contract states no licence of its own.
+  info-license: off

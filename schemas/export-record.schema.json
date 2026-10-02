@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/brickKit/contract-infra-authz/schemas/export-record.schema.json",
+  "title": "authz export, one NDJSON line",
+  "description": "Format authz-export/1: UTF-8, one JSON object per line, LF line ends, no blank lines. First line kind header, last line kind footer, records in between grouped by kind in the order role, user_role, user_dept, profile, delegation, tuple, relation_group, each group sorted by its natural key, so two exports of one state differ only in header.exported_at. Rules for export and import: README.md, section 'Moving assignments between members'.",
+  "type": "object",
+  "required": ["kind"],
+  "oneOf": [
+    { "$ref": "#/$defs/header" },
+    { "$ref": "#/$defs/role" },
+    { "$ref": "#/$defs/user_role" },
+    { "$ref": "#/$defs/user_dept" },
+    { "$ref": "#/$defs/profile" },
+    { "$ref": "#/$defs/delegation" },
+    { "$ref": "#/$defs/tuple" },
+    { "$ref": "#/$defs/relation_group" },
+    { "$ref": "#/$defs/footer" }
+  ],
+  "$defs": {
+    "revision": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,18})$" },
+    "unix": { "type": "integer", "minimum": 0 },
+    "instant": { "type": "string", "format": "date-time" },
+    "key": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z0-9_-]+)+$" },
+    "level": { "type": "string", "enum": ["own", "dept", "subtree", "all"] },
+    "actor": {
+      "type": "object",
+      "required": ["sub", "kind"],
+      "properties": {
+        "sub": { "type": "string" },
+        "kind": { "type": "string", "enum": ["user", "agent", "svc"] }
+      }
+    },
+    "object_ref": {
+      "type": "object",
+      "required": ["type", "id"],
+      "properties": { "type": { "type": "string" }, "id": { "type": "string" } }
+    },
+    "header": {
+      "type": "object",
+      "required": ["kind", "format", "contract", "member", "exported_at", "revision", "kinds", "catalog_digest"],
+      "properties": {
+        "kind": { "const": "header" },
+        "format": { "const": "authz-export/1" },
+        "contract": { "type": "string", "pattern": "^authz/2\\.(0|[1-9][0-9]*)$" },
+        "member": {
+          "type": "object", "required": ["id", "version"],
+          "properties": { "id": { "type": "string" }, "version": { "type": "string" } }
+        },
+        "exported_at": { "$ref": "#/$defs/instant" },
+        "revision": { "description": "The exporting member's head when the export was taken. The importer starts its own revisions above it.", "$ref": "#/$defs/revision" },
+        "kinds": {
+          "description": "The record kinds this file holds. An export filtered with kinds= lists only those; the importer treats an omitted kind as 'not carried over', never as 'empty'.",
+          "type": "array",
+          "items": { "enum": ["role", "user_role", "user_dept", "profile", "delegation", "tuple", "relation_group"] },
+          "uniqueItems": true
+        },
+        "catalog_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "role": {
+      "type": "object",
+      "required": ["kind", "code", "name", "is_system", "keys"],
+      "properties": {
+        "kind": { "const": "role" },
+        "code": { "type": "string", "minLength": 1 },
+        "name": { "type": "string" },
+        "is_system": { "type": "boolean" },
+        "keys": { "type": "array", "items": { "$ref": "#/$defs/key" }, "uniqueItems": true },
+        "levels": { "type": "object", "additionalProperties": { "$ref": "#/$defs/level" } },
+        "default_level": { "$ref": "#/$defs/level" },
+        "values": { "type": "object", "additionalProperties": { "type": "array", "items": { "type": "string" }, "uniqueItems": true } },
+        "from_ts": { "$ref": "#/$defs/unix" },
+        "until": { "$ref": "#/$defs/unix" }
+      }
+    },
+    "user_role": {
+      "type": "object",
+      "required": ["kind", "sub", "role"],
+      "properties": {
+        "kind": { "const": "user_role" },
+        "sub": { "type": "string", "minLength": 1 },
+        "role": { "type": "string", "minLength": 1 },
+        "expires_at": { "$ref": "#/$defs/instant" }
+      }
+    },
+    "user_dept": {
+      "type": "object",
+      "required": ["kind", "sub", "dept_path"],
+      "properties": {
+        "kind": { "const": "user_dept" },
+        "sub": { "type": "string", "minLength": 1 },
+        "dept_path": { "type": "string", "pattern": "^/([^/]+/)*$" }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "required": ["kind", "code", "keys", "max_level", "relations"],
+      "properties": {
+        "kind": { "const": "profile" },
+        "code": { "type": "string", "minLength": 1 },
+        "keys": { "type": "array", "items": { "$ref": "#/$defs/key" }, "uniqueItems": true },
+        "fields": { "type": "array", "items": { "$ref": "#/$defs/key" }, "uniqueItems": true },
+        "max_level": { "$ref": "#/$defs/level" },
+        "relations": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      }
+    },
+    "delegation": {
+      "type": "object",
+      "required": ["kind", "id", "mode", "from", "to", "keys", "created_by", "created_at"],
+      "properties": {
+        "kind": { "const": "delegation" },
+        "id": { "type": "string", "minLength": 1 },
+        "mode": { "type": "string", "enum": ["on_behalf", "act_as"] },
+        "from": { "type": "string", "minLength": 1 },
+        "to": { "$ref": "#/$defs/actor" },
+        "keys": { "type": "array", "items": { "$ref": "#/$defs/key" }, "uniqueItems": true },
+        "profiles": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "from_ts": { "$ref": "#/$defs/unix" },
+        "until": { "$ref": "#/$defs/unix" },
+        "created_by": { "$ref": "#/$defs/actor" },
+        "created_at": { "$ref": "#/$defs/instant" },
+        "revoked_at": { "$ref": "#/$defs/instant" }
+      }
+    },
+    "tuple": {
+      "description": "An authz-owned tuple (a share).",
+      "type": "object",
+      "required": ["kind", "object", "relation", "subject", "source"],
+      "properties": {
+        "kind": { "const": "tuple" },
+        "object": { "$ref": "#/$defs/object_ref" },
+        "relation": { "type": "string" },
+        "subject": { "type": "string" },
+        "expires_at": { "$ref": "#/$defs/instant" },
+        "source": { "description": "The owning component that wrote it through its _shares endpoint.", "type": "string" },
+        "created_by": { "$ref": "#/$defs/actor" }
+      }
+    },
+    "relation_group": {
+      "description": "A component-owned relation group, kept with its version so that a later sync with an older version is still dropped.",
+      "type": "object",
+      "required": ["kind", "object", "relation", "source", "version", "subjects"],
+      "properties": {
+        "kind": { "const": "relation_group" },
+        "object": { "$ref": "#/$defs/object_ref" },
+        "relation": { "type": "string" },
+        "source": { "type": "string" },
+        "version": { "type": "integer", "minimum": 0 },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "type": "object", "required": ["subject"],
+            "properties": { "subject": { "type": "string" }, "expires_at": { "$ref": "#/$defs/instant" } }
+          }
+        }
+      }
+    },
+    "footer": {
+      "type": "object",
+      "required": ["kind", "counts", "sha256"],
+      "properties": {
+        "kind": { "const": "footer" },
+        "counts": { "description": "Records per kind; a kind listed in the header with no records has 0.", "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+        "sha256": { "description": "Hex SHA-256 of the bytes of every line after the header and before the footer, each with its LF.", "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    }
+  }
+}

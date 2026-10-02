@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/brickKit/contract-infra-authz/schemas/vector.schema.json",
+  "title": "authz decision vector",
+  "description": "One file of vectors/decision/. Meaning of every member: EVALUATION.md, section 'Vector file format'.",
+  "type": "object",
+  "required": ["id", "title", "contract", "tags", "input", "expected"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "title": { "type": "string", "minLength": 1 },
+    "contract": { "type": "string", "pattern": "^authz/2\\.(0|[1-9][0-9]*)$" },
+    "tags": { "type": "array", "items": { "type": "string" }, "minItems": 1, "uniqueItems": true },
+    "input": {
+      "type": "object",
+      "required": ["bundle", "claims", "now", "key", "resource_type"],
+      "properties": {
+        "bundle": { "type": "object" },
+        "claims": {
+          "type": "object",
+          "required": ["sub", "iat", "roles"],
+          "properties": {
+            "sub": { "type": "string" },
+            "iat": { "type": "integer" },
+            "roles": { "type": "array", "items": { "type": "string" } },
+            "dept_path": { "type": "string" },
+            "tenant_id": { "type": "string" },
+            "act": { "type": "object" },
+            "ceil": { "type": "array", "items": { "type": "string" } },
+            "dg": { "type": "string" }
+          }
+        },
+        "now": { "type": "integer" },
+        "key": { "type": "string" },
+        "resource_type": { "$ref": "catalog.schema.json#/$defs/resource_type" },
+        "row": {
+          "type": "object",
+          "required": ["id", "owner", "dept_path", "values"],
+          "properties": {
+            "id": { "type": "string" },
+            "owner": { "type": "string" },
+            "dept_path": { "type": "string" },
+            "values": { "type": "object", "additionalProperties": { "type": "string" } }
+          }
+        },
+        "acl": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["rtype", "rid", "relation", "subject"],
+            "properties": {
+              "rtype": { "type": "string" },
+              "rid": { "type": "string" },
+              "relation": { "type": "string" },
+              "subject": { "type": "string" },
+              "expires_at": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        "graph_ids": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "required": ["bundle"],
+      "properties": {
+        "bundle": { "enum": ["accepted", "refused"] },
+        "token": { "enum": ["OK", "TOKEN_STALE", "UNSUPPORTED_DELEGATION"] },
+        "has_key": { "type": "boolean" },
+        "level": { "enum": ["none", "own", "dept", "subtree", "all"] },
+        "scope_params": {
+          "type": "object",
+          "required": ["s_all", "s_owners", "s_dept_exact", "s_dept_prefix", "s_dims", "s_acl", "s_relations", "s_subjects", "s_graph_ids"],
+          "properties": {
+            "s_all": { "type": "boolean" },
+            "s_owners": { "$ref": "#/$defs/sorted" },
+            "s_dept_exact": { "$ref": "#/$defs/sorted" },
+            "s_dept_prefix": { "$ref": "#/$defs/sorted" },
+            "s_dims": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object", "required": ["all", "ids"],
+                "properties": { "all": { "type": "boolean" }, "ids": { "$ref": "#/$defs/sorted" } }
+              }
+            },
+            "s_acl": { "type": "boolean" },
+            "s_relations": { "$ref": "#/$defs/sorted" },
+            "s_subjects": { "$ref": "#/$defs/sorted" },
+            "s_graph_ids": { "$ref": "#/$defs/sorted" }
+          },
+          "additionalProperties": false
+        },
+        "degraded": { "type": "array", "items": { "enum": ["graph"] } },
+        "fields": {
+          "type": "object", "required": ["masked", "read_only"],
+          "properties": { "masked": { "$ref": "#/$defs/sorted" }, "read_only": { "$ref": "#/$defs/sorted" } }
+        },
+        "decision": {
+          "type": "object", "required": ["visible", "allowed", "reason"],
+          "properties": {
+            "visible": { "type": "boolean" },
+            "allowed": { "type": "boolean" },
+            "reason": { "enum": ["", "NOT_FOUND", "MISSING_PERMISSION", "OUT_OF_SCOPE"] }
+          }
+        },
+        "explain": {
+          "type": "object", "required": ["reasons", "missing"],
+          "properties": {
+            "reasons": { "type": "array", "items": { "$ref": "#/$defs/fact" } },
+            "missing": { "type": "array", "items": { "$ref": "#/$defs/fact" } }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "sorted": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "fact": {
+      "type": "object", "required": ["kind", "source", "detail"],
+      "properties": {
+        "kind": { "enum": ["role_key", "level", "dimension", "share", "relation", "delegation", "ceiling", "field", "capability"] },
+        "source": { "type": "string" },
+        "detail": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

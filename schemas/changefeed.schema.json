@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/brickKit/contract-infra-authz/schemas/changefeed.schema.json",
+  "title": "authz changefeed and tuple snapshot",
+  "description": "Wire shapes of GET /authz/v2/changes, GET /authz/v2/tuples and the poke infra.authz.changed.v1. The gRPC forms (ReadChanges, ReadTuples) carry the same content. Only direct tuples travel; the subject side is expanded by the consumer (EVALUATION.md, subject set).",
+  "$ref": "#/$defs/changes_page",
+  "$defs": {
+    "revision": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,18})$"
+    },
+    "object_ref": {
+      "type": "object",
+      "required": ["type", "id"],
+      "properties": {
+        "type": { "description": "Resource type <domain>.<name>.<aggregate>, registered in registry/resource-types.tsv.", "type": "string", "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z0-9_-]+){2,}$" },
+        "id": { "description": "The record id as text.", "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "subject": {
+      "description": "user:<sub> | role:<code> | dept:<path> | dept_tree:<path>. Paths start and end with /.",
+      "type": "string",
+      "pattern": "^(user:.+|role:.+|dept:/([^/]+/)*|dept_tree:/([^/]+/)*)$"
+    },
+    "tuple": {
+      "type": "object",
+      "required": ["object", "relation", "subject"],
+      "properties": {
+        "object": { "$ref": "#/$defs/object_ref" },
+        "relation": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "subject": { "$ref": "#/$defs/subject" },
+        "expires_at": { "description": "RFC 3339 UTC, exclusive. Absent or null: never expires. Evaluated at read time; expiry needs no change entry.", "type": ["string", "null"], "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "change": {
+      "type": "object",
+      "required": ["revision", "op", "tuple"],
+      "properties": {
+        "revision": { "$ref": "#/$defs/revision" },
+        "op": { "type": "string", "enum": ["upsert", "delete"] },
+        "tuple": { "$ref": "#/$defs/tuple" }
+      },
+      "additionalProperties": true
+    },
+    "changes_page": {
+      "description": "Answer to GET /authz/v2/changes?types=a,b&after=<revision>&limit=<1..500>. changes are in strictly increasing revision order with no gap among the requested types; next is the revision to pass as after for the following call; watermark is the member's head, so a consumer whose types saw no change still advances to it. An after the member cannot serve completely answers 410.",
+      "type": "object",
+      "required": ["changes", "next", "watermark"],
+      "properties": {
+        "changes": { "type": "array", "items": { "$ref": "#/$defs/change" }, "maxItems": 500 },
+        "next": { "$ref": "#/$defs/revision" },
+        "watermark": { "$ref": "#/$defs/revision" }
+      },
+      "additionalProperties": true
+    },
+    "tuples_page": {
+      "description": "Answer to GET /authz/v2/tuples?type=<t>&cursor=<c>&page_size=<1..1000>. A snapshot taken at revision; every page of one walk carries the same revision. The consumer rebuilds, then reads changes after that revision.",
+      "type": "object",
+      "required": ["tuples", "next_cursor", "revision"],
+      "properties": {
+        "tuples": { "type": "array", "items": { "$ref": "#/$defs/tuple" } },
+        "next_cursor": { "description": "Empty string on the last page.", "type": "string" },
+        "revision": { "$ref": "#/$defs/revision" }
+      },
+      "additionalProperties": true
+    },
+    "poke": {
+      "description": "Payload of the poke infra.authz.changed.v1 on core NATS: best effort, may be lost, never persisted. Triggers an immediate bundle and changes pull.",
+      "type": "object",
+      "required": ["revision"],
+      "properties": {
+        "revision": { "$ref": "#/$defs/revision" },
+        "bundle": { "description": "True when the bundle changed, not only tuples.", "type": "boolean" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

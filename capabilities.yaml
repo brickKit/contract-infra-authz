@@ -1,0 +1,175 @@
+# Capability enum of the authz family contract, authz/2.0.
+#
+# The single source of the capability names. Members declare
+# `provides_capabilities` in assembly.yaml, components declare
+# `requires_capabilities`, and both lists use these names only. A member
+# advertises the same set at run time in the bundle's `capabilities` object.
+#
+# Rules:
+# - Names are append-only. A capability is never renamed, removed or given a
+#   new meaning; one that is no longer offered is marked `retired`.
+# - A new capability is a contract minor (authz/2.<n>); it is optional by
+#   definition, because a member that predates it must still conform.
+# - Consumers ignore capability names they do not know.
+# - `core` is not optional: every member advertises `core: true`.
+#
+# Fields: name, group (core | optional), since, summary, provider (what a
+# member that declares it must do), absent.backend / absent.frontend (the
+# explicit degradation when a member does not declare it), conformance (the
+# group of tools/be-acceptance/conformance/authz/ that tests it).
+
+contract: authz/2.0
+
+capabilities:
+  - name: core
+    group: core
+    since: "2.0"
+    summary: Everything a component needs to make decisions locally.
+    provider: >-
+      ResolveClaims; bundle v2 at /authz/v2/bundle (roles to keys, levels,
+      dimension values, field keys, stale_since, revision, contract,
+      capabilities, catalog_digest); catalogue sync from PERMISSION_CATALOG,
+      DATA_SCOPE_CATALOG and RESOURCE_CATALOG with superuser completion;
+      GetCatalog; /api/me/access; basic Explain (no relation paths);
+      time-limited role grants (from_ts / until); admin reads
+      (roles, keys, holders, users/{sub}/access); BatchGetRoles; the
+      NDJSON export.
+    absent:
+      backend: not possible; a member without core does not conform
+      frontend: not possible
+    conformance: core
+
+  - name: admin_write
+    group: optional
+    since: "2.0"
+    summary: Assignments can be changed at run time through the admin REST API.
+    provider: >-
+      All admin write endpoints; system-role and last-admin protection;
+      outbox events with the actor; the NDJSON import.
+    absent:
+      backend: every admin write answers 501 CAPABILITY_UNAVAILABLE with metadata.capability = admin_write
+      frontend: admin pages read-only, with a banner naming the member
+    conformance: admin_write
+
+  - name: sharing
+    group: optional
+    since: "2.0"
+    summary: Record shares held by authz and projected into components.
+    provider: >-
+      WriteTuples for authz-owned relations; ReadChanges, ReadTuples and
+      /authz/v2/changes, /authz/v2/tuples; the poke infra.authz.changed.v1;
+      /api/me/shares, /api/admin/shares; infra.authz.tuple.changed.v1.
+    absent:
+      backend: the SDK keeps @s_acl false for shareable relations; _shares answers 501 CAPABILITY_UNAVAILABLE with metadata.capability = sharing; the projection stays empty
+      frontend: share entry points and "shared with me" hidden
+    conformance: sharing
+
+  - name: relation_sync
+    group: optional
+    since: "2.0"
+    summary: Component-owned relations (teams, members) mirrored into authz.
+    provider: >-
+      Consumes infra.authz.relation.sync.v1, replaces the group when the
+      version is newer and the source is the registered owner, serves the
+      tuples through the changefeed like shares.
+    absent:
+      backend: the SDK keeps @s_acl false for component-owned relations; SyncRelation still writes the outbox, so the events can be replayed into a later member
+      frontend: nothing
+    conformance: sharing
+
+  - name: check
+    group: optional
+    since: "2.0"
+    summary: Remote Check and BatchCheck, the fallback when the projection lags a consistency token.
+    provider: Check and BatchCheck (at most 500 items) honouring Consistency.at_least_revision.
+    absent:
+      backend: a single read behind the token answers not visible with X-Authz-Consistency stale, without a fallback
+      frontend: '"try again shortly"'
+    conformance: check
+
+  - name: graph
+    group: optional
+    since: "2.0"
+    summary: Multi-hop derivation for resource types declared derivation graph.
+    provider: ListObjects over graph types, capped by list_objects.max_results; Check derives through the graph.
+    absent:
+      backend: "@s_graph_ids is empty and the response carries X-Authz-Degraded: graph"
+      frontend: a notice that some shared items may be missing
+    conformance: graph
+
+  - name: list_objects
+    group: optional
+    since: "2.0"
+    summary: >-
+      Parameter object, not a flag: {max_results: N}. Present when
+      ListObjects answers; the cap applies to graph and one-hop listings.
+    provider: ListObjects returning at most max_results ids, truncated = true beyond.
+    absent:
+      backend: ListObjects answers UNIMPLEMENTED / CAPABILITY_UNAVAILABLE
+      frontend: nothing
+    conformance: graph
+
+  - name: delegation
+    group: optional
+    since: "2.0"
+    summary: On-behalf delegation, ceiling profiles, and tokens carrying act, ceil or dg.
+    provider: >-
+      CreateDelegation, RevokeDelegation, BatchGetDelegations; profiles and
+      active on_behalf delegations in the bundle; revoked_grants;
+      /api/me/delegations, /api/admin/delegations, /api/admin/profiles;
+      infra.authz.delegation.changed.v1. A delegation is dropped from the
+      bundle as soon as its delegator no longer holds one of its keys.
+    absent:
+      backend: a token carrying act, ceil or dg answers 401 UNSUPPORTED_DELEGATION; on_behalf entries are not expanded
+      frontend: delegation entry points hidden
+    conformance: delegation
+
+  - name: agents
+    group: optional
+    since: "2.0"
+    summary: Reserved (A4). Tokens whose act chain contains kind agent.
+    provider: Reserved shape only; no member declares it in 2.0.
+    absent:
+      backend: a token whose act chain contains kind agent answers 401 UNSUPPORTED_DELEGATION
+      frontend: agent entry points hidden
+    conformance: delegation
+
+  - name: impersonation
+    group: optional
+    since: "2.0"
+    summary: Read-only "view as" tokens (act.kind user), always carrying a read-only ceiling profile.
+    provider: Issues act_as delegations for impersonation with a read-only profile; requires the key infra.authz.impersonate; notifies the person viewed.
+    absent:
+      backend: a token whose act chain contains kind user answers 401 UNSUPPORTED_DELEGATION
+      frontend: '"view as" hidden'
+    conformance: delegation
+
+  - name: access_review
+    group: optional
+    since: "2.0"
+    summary: '"Who can see this record" across rules, shares and relations.'
+    provider: GET /api/admin/access-review?type=&id=
+    absent:
+      backend: the endpoint answers 501 CAPABILITY_UNAVAILABLE
+      frontend: access review hidden
+    conformance: access_review
+
+  - name: explain_paths
+    group: optional
+    since: "2.0"
+    summary: Relation paths in Explain (Zanzibar Expand style).
+    provider: Explain fills paths[] for graph and one-hop derivations.
+    absent:
+      backend: Explain answers without paths
+      frontend: the "why" drawer shows facts without paths
+    conformance: explain
+
+  - name: conditions
+    group: optional
+    since: "2.0"
+    summary: Policy conditions on actions only (Cedar / OPA style); never on visibility.
+    provider: Reserved; no member declares it in 2.0.
+    absent:
+      backend: nothing; components never depend on it for visibility
+      frontend: nothing
+    conformance: conditions

@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/brickKit/contract-infra-authz/schemas/catalog.schema.json",
+  "title": "authz catalogue",
+  "description": "The normalised catalogue a member holds, as GetCatalog returns it and as catalog_digest is computed over (sha256 of the RFC 8785 canonical JSON of this object, arrays sorted as stated). Built at start from three configuration keys: PERMISSION_CATALOG (registry/permissions.tsv), DATA_SCOPE_CATALOG (registry/data-scopes.tsv) and RESOURCE_CATALOG (a JSON file be-ops generates from every assembly.yaml resources block; its resource_types member has the shape below).",
+  "type": "object",
+  "required": ["keys", "dimensions", "resource_types"],
+  "properties": {
+    "keys": {
+      "description": "Sorted by key.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/key_entry" }
+    },
+    "dimensions": {
+      "description": "Sorted by dimension.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/dimension_entry" }
+    },
+    "resource_types": {
+      "description": "Sorted by type.",
+      "type": "array",
+      "items": { "$ref": "#/$defs/resource_type" }
+    }
+  },
+  "$defs": {
+    "key": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z0-9_-]+)+$" },
+    "key_entry": {
+      "type": "object",
+      "required": ["key", "title", "type", "owner_component"],
+      "properties": {
+        "key": { "$ref": "#/$defs/key" },
+        "title": { "type": "string" },
+        "type": { "type": "string", "enum": ["page", "action", "field"] },
+        "owner_component": { "type": "string" },
+        "deprecated": { "description": "Empty when in use; otherwise the reason. A deprecated key stays in the catalogue and is never granted by superuser completion.", "type": "string" },
+        "delegable": { "description": "Reserved (A4): shape only. Nothing fills or reads it in 2.0. Absent means not stated.", "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "dimension_entry": {
+      "type": "object",
+      "required": ["dimension", "kind"],
+      "properties": {
+        "dimension": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+        "kind": { "description": "identity: owner and org, evaluated against the token; resource: a column value (warehouse, legal_entity).", "type": "string", "enum": ["identity", "resource"] },
+        "owner_component": { "description": "For a resource dimension, the one component that owns its values (I8).", "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "relation": {
+      "type": "object",
+      "properties": {
+        "includes": { "description": "Relations whose grants this one also carries (editor includes viewer).", "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "grants": { "description": "Keys this relation gives on the one record. View-type keys only; action keys need a role (foundations 20).", "type": "array", "items": { "$ref": "#/$defs/key" }, "uniqueItems": true },
+        "owned_by": { "description": "authz (shares, the default) or component (written by the owner through infra.authz.relation.sync.v1; admins may not edit).", "type": "string", "enum": ["authz", "component"] }
+      },
+      "additionalProperties": true
+    },
+    "resource_type": {
+      "type": "object",
+      "required": ["type", "owner_component", "view_key", "relations", "derivation"],
+      "properties": {
+        "type": { "type": "string", "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z0-9_-]+){2,}$" },
+        "owner_component": { "type": "string" },
+        "view_key": { "description": "The key that governs whether a record of this type is visible at all (list and single read).", "$ref": "#/$defs/key" },
+        "keys": { "type": "array", "items": { "$ref": "#/$defs/key" }, "uniqueItems": true },
+        "dimensions": {
+          "description": "The data-scope dimensions the owner filters this type by (identity: owner, org; resource: warehouse, legal_entity, ...).",
+          "type": "array", "items": { "type": "string" }, "uniqueItems": true
+        },
+        "relations": { "type": "object", "additionalProperties": { "$ref": "#/$defs/relation" } },
+        "share": {
+          "type": "object",
+          "required": ["key", "relations", "subjects"],
+          "properties": {
+            "key": { "$ref": "#/$defs/key" },
+            "relations": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+            "subjects": { "type": "array", "items": { "type": "string", "enum": ["user", "role", "dept", "dept_tree"] }, "uniqueItems": true }
+          },
+          "additionalProperties": true
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["set", "columns", "read"],
+            "properties": {
+              "set": { "type": "string" },
+              "columns": { "type": "array", "items": { "type": "string" }, "minItems": 1, "uniqueItems": true },
+              "read": { "$ref": "#/$defs/key" },
+              "edit": { "$ref": "#/$defs/key" }
+            },
+            "additionalProperties": true
+          }
+        },
+        "inherits": {
+          "description": "One-hop derivation from a parent type (prj/timesheet from prj.project.project via project_id, member -> viewer).",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["from", "via", "relation", "as"],
+            "properties": {
+              "from": { "type": "string" },
+              "via": { "type": "string" },
+              "relation": { "type": "string" },
+              "as": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        },
+        "derivation": { "type": "string", "enum": ["direct", "graph"] }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

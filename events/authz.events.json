@@ -1,0 +1,464 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "authz family events, authz/2.0",
+  "note": "Format of foundations 13 (contracts/events/<name>.events.json) with three additions a slot family needs: inbound_events (published by owning components, consumed by whichever member is installed), signals (core NATS, not the outbox) and consumes (subjects of other families every member subscribes to, with the effect each has). Every member publishes exactly the subjects under events, with ce-source set to its own component ID; consumers never filter on ce-source, because the member may change. Additive only: a field or a subject is never removed, renamed, retyped or given a new meaning; a breaking change is a new subject .v2. Payloads carry no secrets and no tokens. Event entries use the key names of be-protocol events-contract.schema.json (x-aggregate-type, x-consumption); the other keys (aggregate_id, capability, publishers, grade) are this family format's additions.",
+  "envelope": {
+    "description": "CloudEvents 1.0 binary mode, filled by the runtime (foundations 13, be-protocol P12): ce-id (UUIDv7), ce-source, ce-type (the subject), ce-time, ce-subject (the aggregate id), ce-aggregatetype, ce-aggregateversion, ce-causationid, ce-hopcount, traceparent. Not repeated in the payload."
+  },
+  "$defs": {
+    "actor": {
+      "description": "Who made the change, with the act chain when delegated. sub is a platform sub, or svc:<component ID> for a system write.",
+      "type": "object",
+      "required": [
+        "sub",
+        "kind"
+      ],
+      "properties": {
+        "sub": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "user",
+            "agent",
+            "svc"
+          ]
+        },
+        "act": {
+          "$ref": "#/$defs/actor"
+        }
+      }
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,18})$"
+    },
+    "object_ref": {
+      "type": "object",
+      "required": [
+        "type",
+        "id"
+      ],
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      }
+    },
+    "tuple": {
+      "type": "object",
+      "required": [
+        "object",
+        "relation",
+        "subject"
+      ],
+      "properties": {
+        "object": {
+          "$ref": "#/$defs/object_ref"
+        },
+        "relation": {
+          "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "expires_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    }
+  },
+  "events": [
+    {
+      "subject": "infra.authz.tuple.changed.v1",
+      "x-aggregate-type": "infra.authz.tuple",
+      "aggregate_id": "<type>:<id>#<relation>@<subject>",
+      "x-consumption": "state",
+      "grade": "peripheral",
+      "capability": "sharing",
+      "note": "A tuple was written or deleted (shares, and mirrored component-owned relations). Consumers: infra/audit (planned); infra/notification for 'X shared Y with you', whose link carries the revision. Components do not build projections from this event: the changefeed is the projection's source.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "op",
+          "tuple",
+          "owned_by",
+          "source",
+          "revision",
+          "actor"
+        ],
+        "properties": {
+          "op": {
+            "type": "string",
+            "enum": [
+              "upsert",
+              "delete"
+            ]
+          },
+          "tuple": {
+            "$ref": "#/$defs/tuple"
+          },
+          "owned_by": {
+            "type": "string",
+            "enum": [
+              "authz",
+              "component"
+            ]
+          },
+          "source": {
+            "description": "The resource type's owning component.",
+            "type": "string"
+          },
+          "revision": {
+            "$ref": "#/$defs/revision"
+          },
+          "actor": {
+            "$ref": "#/$defs/actor"
+          }
+        }
+      }
+    },
+    {
+      "subject": "infra.authz.scope_grant.changed.v1",
+      "x-aggregate-type": "infra.authz.role",
+      "aggregate_id": "<role code>",
+      "x-consumption": "state",
+      "grade": "peripheral",
+      "capability": "admin_write",
+      "note": "A role's data-scope assignment changed: a key's level, the default level, a dimension value, or the role's validity window. Consumer: audit.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "role_code",
+          "change",
+          "revision",
+          "actor"
+        ],
+        "properties": {
+          "role_code": {
+            "type": "string"
+          },
+          "change": {
+            "type": "string",
+            "enum": [
+              "level_set",
+              "level_removed",
+              "default_level_set",
+              "value_added",
+              "value_removed",
+              "window_set"
+            ]
+          },
+          "key": {
+            "type": "string"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "own",
+              "dept",
+              "subtree",
+              "all"
+            ]
+          },
+          "dimension": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "from_ts": {
+            "type": "integer"
+          },
+          "until": {
+            "type": "integer"
+          },
+          "revision": {
+            "$ref": "#/$defs/revision"
+          },
+          "actor": {
+            "$ref": "#/$defs/actor"
+          }
+        }
+      }
+    },
+    {
+      "subject": "infra.authz.delegation.changed.v1",
+      "x-aggregate-type": "infra.authz.delegation",
+      "aggregate_id": "<delegation id>",
+      "x-consumption": "state",
+      "grade": "peripheral",
+      "capability": "delegation",
+      "note": "A delegation was created, revoked or expired. Consumers: audit; infra/notification ('A delegated approvals to you until ...').",
+      "payload": {
+        "type": "object",
+        "required": [
+          "delegation_id",
+          "change",
+          "mode",
+          "from_sub",
+          "to",
+          "revision",
+          "actor"
+        ],
+        "properties": {
+          "delegation_id": {
+            "type": "string"
+          },
+          "change": {
+            "type": "string",
+            "enum": [
+              "created",
+              "revoked",
+              "expired"
+            ]
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "on_behalf",
+              "act_as"
+            ]
+          },
+          "from_sub": {
+            "type": "string"
+          },
+          "to": {
+            "$ref": "#/$defs/actor"
+          },
+          "keys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "valid_until": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "revision": {
+            "$ref": "#/$defs/revision"
+          },
+          "actor": {
+            "$ref": "#/$defs/actor"
+          }
+        }
+      }
+    },
+    {
+      "subject": "infra.authz.role.changed.v1",
+      "x-aggregate-type": "infra.authz.role",
+      "aggregate_id": "<role code>",
+      "x-consumption": "state",
+      "grade": "peripheral",
+      "capability": "admin_write",
+      "note": "A role was created, renamed, deleted, or its keys changed (superuser completion included, with actor svc:<member ID>). Consumer: audit. The bundle, not this event, carries the change to components.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "role_code",
+          "change_type",
+          "revision",
+          "actor"
+        ],
+        "properties": {
+          "role_code": {
+            "type": "string"
+          },
+          "change_type": {
+            "type": "string",
+            "enum": [
+              "created",
+              "updated",
+              "keys_changed",
+              "deleted"
+            ]
+          },
+          "keys_added": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "keys_removed": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "revision": {
+            "$ref": "#/$defs/revision"
+          },
+          "actor": {
+            "$ref": "#/$defs/actor"
+          }
+        }
+      }
+    },
+    {
+      "subject": "infra.authz.user_role.changed.v1",
+      "x-aggregate-type": "infra.authz.user",
+      "aggregate_id": "<sub>",
+      "x-consumption": "state",
+      "grade": "peripheral",
+      "capability": "admin_write",
+      "note": "A user's assignment changed: a role granted, revoked or expired, all roles revoked (kicked), or the department changed. Each of these also writes stale_since for the sub. Consumer: audit.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "sub",
+          "change_type",
+          "revision",
+          "actor"
+        ],
+        "properties": {
+          "sub": {
+            "type": "string"
+          },
+          "change_type": {
+            "type": "string",
+            "enum": [
+              "granted",
+              "revoked",
+              "expired",
+              "kicked",
+              "dept_changed"
+            ]
+          },
+          "role_code": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "dept_path": {
+            "type": "string"
+          },
+          "revision": {
+            "$ref": "#/$defs/revision"
+          },
+          "actor": {
+            "$ref": "#/$defs/actor"
+          }
+        }
+      }
+    }
+  ],
+  "inbound_events": [
+    {
+      "subject": "infra.authz.relation.sync.v1",
+      "x-aggregate-type": "infra.authz.relation_group",
+      "aggregate_id": "<type>:<id>#<relation>",
+      "x-consumption": "state",
+      "grade": "core",
+      "capability": "relation_sync",
+      "publishers": "every component that declares a relation owned_by: component, through tx.SyncRelation in its business transaction (be-protocol P6.13); ce-source is that component",
+      "note": "Replaces the whole group (object, relation) with subjects. ce-aggregateversion is the group's version, monotonic per group at the owner. The member accepts it only when ce-source is the registered owner_component of the type and the relation is owned_by: component, and drops a version not newer than the one it holds. A member without relation_sync does not consume it; the events stay in the stream and in the owner's outbox for replay into a later member.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "object",
+          "relation",
+          "subjects"
+        ],
+        "properties": {
+          "object": {
+            "$ref": "#/$defs/object_ref"
+          },
+          "relation": {
+            "type": "string"
+          },
+          "subjects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "subject"
+              ],
+              "properties": {
+                "subject": {
+                  "type": "string"
+                },
+                "expires_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "signals": [
+    {
+      "subject": "infra.authz.changed.v1",
+      "transport": "core NATS, not JetStream, not the outbox (be-protocol P12.10)",
+      "capability": "core",
+      "note": "Poke after any change that moves the revision. Best effort; loss only delays the next poll (bundle 15 s, changes 5 s). In a shell every member subscribes once.",
+      "payload": {
+        "type": "object",
+        "required": [
+          "revision"
+        ],
+        "properties": {
+          "revision": {
+            "$ref": "#/$defs/revision"
+          },
+          "bundle": {
+            "description": "True when the bundle changed, not only tuples.",
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  ],
+  "consumes": [
+    {
+      "subject": "infra.iam.user.disabled.v1",
+      "from": "contract-infra-iam iam/1",
+      "capability": "core",
+      "effect": "stale_since[sub] = the event's ce-time: tokens already issued answer 401 TOKEN_STALE (EVALUATION.md E2, step 1); assignments are kept."
+    },
+    {
+      "subject": "infra.iam.user.deleted.v1",
+      "from": "contract-infra-iam iam/1",
+      "capability": "core",
+      "effect": "stale_since[sub] = the event's ce-time; every assignment of the sub is removed (roles, keys, department, tuples with subject user:<sub>), publishing user_role.changed.v1 and tuple.changed.v1."
+    },
+    {
+      "subject": "infra.iam.user.created.v1",
+      "from": "contract-infra-iam iam/1",
+      "capability": "core",
+      "effect": "with bootstrap_admin: true, grant the system role superuser to the sub, idempotently; otherwise nothing."
+    },
+    {
+      "subject": "infra.iam.user.updated.v1",
+      "from": "contract-infra-iam iam/1",
+      "capability": "core",
+      "effect": "with bootstrap_admin: true, grant superuser as for created.v1; a re-enabled user (status active) keeps its assignments; otherwise nothing."
+    }
+  ]
+}

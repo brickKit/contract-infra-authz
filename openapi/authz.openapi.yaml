@@ -1,0 +1,1111 @@
+openapi: 3.1.0
+info:
+  title: authz family, REST surface
+  version: "2.0"
+  summary: Provider plane, self-service and admin REST that every authz member serves.
+  description: |
+    Implemented by every member of the authz slot family; the admin UI and
+    the frontend generate their clients from this file only, never from a
+    member. The resource contract each component mounts (`_authz/check`,
+    `_authz/explain`, `_shares`) is not here: it belongs to be-protocol
+    (`openapi/resource-authz.yaml`).
+
+    - `/authz/v2/*` is the provider plane: system traffic from the runtimes
+      of components, never routed through the edge. Callers send `be-caller`
+      (their component ID); in 2.0 a member records it and does not reject
+      a call without it.
+    - `/api/me/*` and `/api/admin/*` go through the edge with a user's
+      access token. Admin operations need `infra.authz.admin`.
+    - `x-capability` on an operation names the capability it belongs to
+      (capabilities.yaml). A member that does not declare it answers `501`
+      with reason `CAPABILITY_UNAVAILABLE`, domain `be`, and
+      `metadata.capability`.
+    - Errors are `application/problem+json` (be-protocol P4); this
+      family's reasons are in errors.yaml (domain `infra/authz`).
+    - Writes answer the member's `revision` after the write; the frontend
+      compares it with `/api/me/access` to know the change is in effect.
+    - Lists page with `cursor`, `page_size`, `next_cursor` (AIP-158). The
+      changefeed is a log read by position (`after`, `limit`, `next`).
+servers:
+  - url: "{AUTHZ_URL}"
+    variables:
+      AUTHZ_URL:
+        default: http://infra-authz-3-0-0:8223
+        description: Shared key AUTHZ_URL, the installed member's own service name.
+
+tags:
+  - name: provider
+    description: Provider plane, system traffic only.
+  - name: self
+    description: The signed-in user's own view.
+  - name: admin
+    description: Administration, key infra.authz.admin.
+
+security:
+  - bearer: []
+
+paths:
+  /authz/v2/bundle:
+    get:
+      tags: [provider]
+      operationId: getBundle
+      summary: The bundle v2, conditional on ETag
+      description: Polled every 15 s and on every poke (be-protocol P6.1). A consumer refuses a body whose contract is not authz/2.*.
+      x-capability: core
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/BeCaller"
+        - { name: If-None-Match, in: header, required: false, schema: { type: string } }
+      responses:
+        "200":
+          description: The bundle.
+          headers:
+            ETag: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: "../schemas/bundle.schema.json" }
+        "304":
+          description: Unchanged since the ETag.
+        "503": { $ref: "#/components/responses/Problem" }
+
+  /authz/v2/changes:
+    get:
+      tags: [provider]
+      operationId: readChanges
+      summary: Changefeed of direct tuples after a revision
+      description: |
+        Changes of the requested types in strictly increasing revision order,
+        with no gap. `watermark` is the member's head. An `after` the member
+        cannot serve completely (older than its floor, newer than its head)
+        answers 410 `CHANGES_EXPIRED`; the consumer rebuilds from
+        `/authz/v2/tuples` and continues from the snapshot's revision.
+      x-capability: sharing
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/BeCaller"
+        - name: types
+          in: query
+          required: true
+          description: Comma-separated resource types.
+          schema: { type: string }
+        - name: after
+          in: query
+          required: true
+          schema: { $ref: "#/components/schemas/Revision" }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 500, default: 500 }
+      responses:
+        "200":
+          description: One page of changes.
+          content:
+            application/json:
+              schema: { $ref: "../schemas/changefeed.schema.json#/$defs/changes_page" }
+        "410": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /authz/v2/tuples:
+    get:
+      tags: [provider]
+      operationId: readTuples
+      summary: Snapshot of one type's direct tuples
+      x-capability: sharing
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/BeCaller"
+        - { name: type, in: query, required: true, schema: { type: string } }
+        - $ref: "#/components/parameters/Cursor"
+        - name: page_size
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 1000, default: 1000 }
+      responses:
+        "200":
+          description: One page of the snapshot.
+          content:
+            application/json:
+              schema: { $ref: "../schemas/changefeed.schema.json#/$defs/tuples_page" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /authz/v2/catalog:
+    get:
+      tags: [provider]
+      operationId: getCatalog
+      summary: The catalogue the member holds
+      x-capability: core
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/BeCaller"
+      responses:
+        "200":
+          description: The catalogue; its digest equals the bundle's catalog_digest.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "../schemas/catalog.schema.json"
+                  - type: object
+                    required: [digest]
+                    properties:
+                      digest: { type: string, pattern: "^sha256:[0-9a-f]{64}$" }
+
+  /authz/v2/explain:
+    post:
+      tags: [provider]
+      operationId: explainProvider
+      summary: Provider-level explanation for a principal
+      x-capability: core
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/BeCaller"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [principal, key]
+              properties:
+                principal: { $ref: "#/components/schemas/Principal" }
+                key: { $ref: "#/components/schemas/Key" }
+                object: { $ref: "#/components/schemas/ObjectRef" }
+      responses:
+        "200":
+          description: Facts and, with explain_paths, relation paths.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Explanation" }
+
+  /api/me/access:
+    get:
+      tags: [self]
+      operationId: getMyAccess
+      summary: Everything the frontend needs about the signed-in user, in one answer
+      description: Replaces /api/me/permissions, and carries the installed components that /api/tenant/features used to list (the identity member's public /api/tenant/features keeps only what the login page needs, contract-infra-iam). Authenticated; the user is the token's sub.
+      x-capability: core
+      responses:
+        "200":
+          description: The user's access.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MyAccess" }
+        "401": { $ref: "#/components/responses/Problem" }
+
+  /api/me/delegations:
+    get:
+      tags: [self]
+      operationId: listMyDelegations
+      summary: Delegations from and to the signed-in user
+      x-capability: delegation
+      parameters:
+        - name: direction
+          in: query
+          required: false
+          schema: { type: string, enum: [by_me, to_me], default: by_me }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: A page of delegations.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DelegationPage" }
+        "501": { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [self]
+      operationId: createMyDelegation
+      summary: Delegate some of my keys on_behalf to another user for a period
+      x-capability: delegation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [to, keys, valid_until, idempotency_key]
+              properties:
+                to: { type: string, description: The delegate's sub. }
+                keys: { type: array, items: { $ref: "#/components/schemas/Key" }, minItems: 1 }
+                valid_from: { type: string, format: date-time }
+                valid_until: { type: string, format: date-time }
+                reason: { type: string }
+                idempotency_key: { type: string, minLength: 1 }
+      responses:
+        "200":
+          description: The delegation.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DelegationWithRevision" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/me/delegations/{id}:
+    delete:
+      tags: [self]
+      operationId: revokeMyDelegation
+      summary: Revoke a delegation I made
+      x-capability: delegation
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: The revoked delegation.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DelegationWithRevision" }
+        "404": { $ref: "#/components/responses/Problem" }
+
+  /api/me/shares:
+    get:
+      tags: [self]
+      operationId: listMyShares
+      summary: Shares made by me, or shared with me, across components
+      x-capability: sharing
+      parameters:
+        - name: direction
+          in: query
+          required: true
+          schema: { type: string, enum: [by_me, with_me] }
+        - { name: type, in: query, required: false, schema: { type: string } }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: A page of shares. Records are named by reference only; the owning component decides what the user sees when the link is opened.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SharePage" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/roles:
+    get:
+      tags: [admin]
+      operationId: listRoles
+      summary: Roles, without the per-user roles u:<sub>
+      x-capability: core
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: A page of roles.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [roles, next_cursor]
+                properties:
+                  roles: { type: array, items: { $ref: "#/components/schemas/Role" } }
+                  next_cursor: { type: string }
+    post:
+      tags: [admin]
+      operationId: createRole
+      summary: Create a role
+      x-capability: admin_write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, name]
+              properties:
+                code: { $ref: "#/components/schemas/RoleCode" }
+                name: { type: string }
+                default_level: { $ref: "#/components/schemas/Level" }
+      responses:
+        "200": { $ref: "#/components/responses/RoleWritten" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/roles/{code}:
+    parameters:
+      - $ref: "#/components/parameters/RoleCodePath"
+    get:
+      tags: [admin]
+      operationId: getRole
+      summary: One role with its keys, levels, values and window
+      x-capability: core
+      responses:
+        "200":
+          description: The role.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Role" }
+        "404": { $ref: "#/components/responses/Problem" }
+    patch:
+      tags: [admin]
+      operationId: updateRole
+      summary: Rename a role, set its default level or validity window
+      x-capability: admin_write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                default_level: { $ref: "#/components/schemas/Level" }
+                valid_from: { type: [string, "null"], format: date-time }
+                valid_until: { type: [string, "null"], format: date-time }
+      responses:
+        "200": { $ref: "#/components/responses/RoleWritten" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [admin]
+      operationId: deleteRole
+      summary: Delete a role (never a system role)
+      x-capability: admin_write
+      responses:
+        "200": { $ref: "#/components/responses/Revision" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/roles/{code}/keys/{key}:
+    parameters:
+      - $ref: "#/components/parameters/RoleCodePath"
+      - $ref: "#/components/parameters/KeyPath"
+    put:
+      tags: [admin]
+      operationId: grantRoleKey
+      summary: Grant a key to a role, optionally with a level
+      x-capability: admin_write
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                level: { $ref: "#/components/schemas/Level" }
+      responses:
+        "200": { $ref: "#/components/responses/RoleWritten" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [admin]
+      operationId: revokeRoleKey
+      summary: Remove a key (and its level) from a role
+      x-capability: admin_write
+      responses:
+        "200": { $ref: "#/components/responses/RoleWritten" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/roles/{code}/values/{dimension}/{value}:
+    parameters:
+      - $ref: "#/components/parameters/RoleCodePath"
+      - { name: dimension, in: path, required: true, schema: { type: string } }
+      - name: value
+        in: path
+        required: true
+        description: A dimension value, URL-encoded; for org a department path; * for all.
+        schema: { type: string }
+    put:
+      tags: [admin]
+      operationId: addRoleValue
+      summary: Give a role a dimension value
+      x-capability: admin_write
+      responses:
+        "200": { $ref: "#/components/responses/RoleWritten" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [admin]
+      operationId: removeRoleValue
+      summary: Take a dimension value from a role
+      x-capability: admin_write
+      responses:
+        "200": { $ref: "#/components/responses/RoleWritten" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/keys:
+    get:
+      tags: [admin]
+      operationId: listKeys
+      summary: The permission-key catalogue
+      x-capability: core
+      parameters:
+        - { name: type, in: query, required: false, schema: { type: string, enum: [page, action, field] } }
+        - { name: owner_component, in: query, required: false, schema: { type: string } }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: A page of keys.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [keys, next_cursor]
+                properties:
+                  keys: { type: array, items: { $ref: "../schemas/catalog.schema.json#/$defs/key_entry" } }
+                  next_cursor: { type: string }
+
+  /api/admin/keys/{key}/holders:
+    get:
+      tags: [admin]
+      operationId: listKeyHolders
+      summary: Who holds a key, through which role ("who can close the period?")
+      x-capability: core
+      parameters:
+        - $ref: "#/components/parameters/KeyPath"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: A page of holders.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [roles, users, next_cursor]
+                properties:
+                  roles: { type: array, items: { type: object, required: [code, level], properties: { code: { type: string }, level: { $ref: "#/components/schemas/Level" } } } }
+                  users: { type: array, items: { type: object, required: [sub, via], properties: { sub: { type: string }, via: { type: array, items: { type: string } }, expires_at: { type: string, format: date-time } } } }
+                  next_cursor: { type: string }
+
+  /api/admin/dimensions:
+    get:
+      tags: [admin]
+      operationId: listDimensions
+      summary: The data-scope dimension catalogue
+      x-capability: core
+      responses:
+        "200":
+          description: Every dimension.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [dimensions]
+                properties:
+                  dimensions: { type: array, items: { $ref: "../schemas/catalog.schema.json#/$defs/dimension_entry" } }
+
+  /api/admin/resource-types:
+    get:
+      tags: [admin]
+      operationId: listResourceTypes
+      summary: The resource-type catalogue with relations and share rules
+      x-capability: core
+      responses:
+        "200":
+          description: Every resource type.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [resource_types]
+                properties:
+                  resource_types: { type: array, items: { $ref: "../schemas/catalog.schema.json#/$defs/resource_type" } }
+
+  /api/admin/users/{sub}/access:
+    get:
+      tags: [admin]
+      operationId: getUserAccess
+      summary: A user's access with the source of every grant
+      description: Same shape as /api/me/access plus granted_by on every key and value; answers "why can, why cannot this person".
+      x-capability: core
+      parameters:
+        - $ref: "#/components/parameters/SubPath"
+      responses:
+        "200":
+          description: The user's access.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserAccess" }
+        "404": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/users/{sub}/roles/{code}:
+    parameters:
+      - $ref: "#/components/parameters/SubPath"
+      - $ref: "#/components/parameters/RoleCodePath"
+    put:
+      tags: [admin]
+      operationId: grantUserRole
+      summary: Give a user a role, optionally until a date; writes stale_since
+      x-capability: admin_write
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expires_at: { type: string, format: date-time }
+      responses:
+        "200": { $ref: "#/components/responses/Revision" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [admin]
+      operationId: revokeUserRole
+      summary: Take a role from a user (never the last administrator); writes stale_since
+      x-capability: admin_write
+      responses:
+        "200": { $ref: "#/components/responses/Revision" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/users/{sub}/keys/{key}:
+    parameters:
+      - $ref: "#/components/parameters/SubPath"
+      - $ref: "#/components/parameters/KeyPath"
+    put:
+      tags: [admin]
+      operationId: grantUserKey
+      summary: Give one user one key (through the per-user role u:<sub>)
+      x-capability: admin_write
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                level: { $ref: "#/components/schemas/Level" }
+      responses:
+        "200": { $ref: "#/components/responses/Revision" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [admin]
+      operationId: revokeUserKey
+      summary: Take one key from one user's per-user role
+      x-capability: admin_write
+      responses:
+        "200": { $ref: "#/components/responses/Revision" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/users/{sub}/department:
+    put:
+      tags: [admin]
+      operationId: setUserDepartment
+      summary: Assign a user's department; writes stale_since
+      description: The source of departments moves to mdm/org; until its design settles the split with the IAM directory, the member holds the assignment and ResolveClaims reads it.
+      x-capability: admin_write
+      parameters:
+        - $ref: "#/components/parameters/SubPath"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dept_path]
+              properties:
+                dept_path: { type: string, description: "A path such as /1/12/, or an empty string for no department." }
+      responses:
+        "200": { $ref: "#/components/responses/Revision" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/users/{sub}/kick:
+    post:
+      tags: [admin]
+      operationId: kickUser
+      summary: Revoke every role of a user at once; writes stale_since
+      x-capability: admin_write
+      parameters:
+        - $ref: "#/components/parameters/SubPath"
+      responses:
+        "200": { $ref: "#/components/responses/Revision" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/profiles:
+    get:
+      tags: [admin]
+      operationId: listProfiles
+      summary: Ceiling profiles
+      x-capability: delegation
+      responses:
+        "200":
+          description: Every profile.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [profiles]
+                properties:
+                  profiles: { type: array, items: { $ref: "#/components/schemas/Profile" } }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/profiles/{code}:
+    parameters:
+      - { name: code, in: path, required: true, schema: { type: string } }
+    put:
+      tags: [admin]
+      operationId: putProfile
+      summary: Create or replace a ceiling profile
+      x-capability: delegation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Profile" }
+      responses:
+        "200": { $ref: "#/components/responses/Revision" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [admin]
+      operationId: deleteProfile
+      summary: Delete a ceiling profile; tokens naming it then allow nothing
+      x-capability: delegation
+      responses:
+        "200": { $ref: "#/components/responses/Revision" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/delegations:
+    get:
+      tags: [admin]
+      operationId: listDelegations
+      summary: Every delegation, filterable by user
+      x-capability: delegation
+      parameters:
+        - { name: sub, in: query, required: false, schema: { type: string } }
+        - { name: active, in: query, required: false, schema: { type: boolean } }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: A page of delegations.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DelegationPage" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/delegations/{id}:
+    delete:
+      tags: [admin]
+      operationId: revokeDelegation
+      summary: Revoke any delegation
+      x-capability: delegation
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: The revoked delegation.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DelegationWithRevision" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/shares:
+    get:
+      tags: [admin]
+      operationId: listShares
+      summary: Shares for review, by subject or by record
+      x-capability: sharing
+      parameters:
+        - { name: subject, in: query, required: false, schema: { type: string } }
+        - { name: type, in: query, required: false, schema: { type: string } }
+        - { name: id, in: query, required: false, schema: { type: string } }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: A page of shares.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SharePage" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/shares/{share_id}:
+    delete:
+      tags: [admin]
+      operationId: revokeShare
+      summary: Revoke a share (authz-owned tuples only)
+      x-capability: sharing
+      parameters:
+        - { name: share_id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200": { $ref: "#/components/responses/Revision" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/access-review:
+    get:
+      tags: [admin]
+      operationId: reviewAccess
+      summary: Who can see one record, through rules, shares and relations
+      description: The member asks the owning component for the record's rule attributes through its resource contract, then expands holders.
+      x-capability: access_review
+      parameters:
+        - { name: type, in: query, required: true, schema: { type: string } }
+        - { name: id, in: query, required: true, schema: { type: string } }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: A page of people with the facts that give them access.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [entries, next_cursor, revision]
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      type: object
+                      required: [sub, reasons]
+                      properties:
+                        sub: { type: string }
+                        reasons: { type: array, items: { $ref: "#/components/schemas/Fact" } }
+                  next_cursor: { type: string }
+                  revision: { $ref: "#/components/schemas/Revision" }
+        "501": { $ref: "#/components/responses/Problem" }
+
+  /api/admin/export:
+    get:
+      tags: [admin]
+      operationId: exportAssignments
+      summary: Export assignments as NDJSON (authz-export/1)
+      description: Taken from a member whose writes are stopped (README, "Moving assignments between members").
+      x-capability: core
+      parameters:
+        - name: kinds
+          in: query
+          required: false
+          description: Comma-separated record kinds; all kinds the member holds when absent.
+          schema: { type: string }
+      responses:
+        "200":
+          description: One header line, the records, one footer line.
+          content:
+            application/x-ndjson:
+              schema: { $ref: "../schemas/export-record.schema.json" }
+
+  /api/admin/import:
+    post:
+      tags: [admin]
+      operationId: importAssignments
+      summary: Import an NDJSON export, all or nothing
+      x-capability: admin_write
+      parameters:
+        - name: dry_run
+          in: query
+          required: false
+          schema: { type: boolean, default: false }
+      requestBody:
+        required: true
+        content:
+          application/x-ndjson:
+            schema: { $ref: "../schemas/export-record.schema.json" }
+      responses:
+        "200":
+          description: Imported, or (dry_run) would import.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [counts, revision, rejected]
+                properties:
+                  counts: { type: object, additionalProperties: { type: integer } }
+                  rejected: { type: array, items: { $ref: "#/components/schemas/ImportRejection" } }
+                  revision: { $ref: "#/components/schemas/Revision" }
+        "400":
+          description: IMPORT_REJECTED; nothing was written. The body is a problem whose metadata lists the first rejections; the full list is in rejected.
+          content:
+            application/problem+json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Problem"
+                  - type: object
+                    properties:
+                      rejected: { type: array, items: { $ref: "#/components/schemas/ImportRejection" } }
+        "501": { $ref: "#/components/responses/Problem" }
+
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    BeCaller:
+      name: be-caller
+      in: header
+      required: false
+      description: The calling component's ID (in a shell, the member's).
+      schema: { type: string }
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      schema: { type: string }
+    PageSize:
+      name: page_size
+      in: query
+      required: false
+      schema: { type: integer, minimum: 1, maximum: 500, default: 50 }
+    RoleCodePath:
+      name: code
+      in: path
+      required: true
+      schema: { $ref: "#/components/schemas/RoleCode" }
+    KeyPath:
+      name: key
+      in: path
+      required: true
+      schema: { $ref: "#/components/schemas/Key" }
+    SubPath:
+      name: sub
+      in: path
+      required: true
+      schema: { type: string }
+
+  responses:
+    Problem:
+      description: An RFC 9457 problem (be-protocol P4).
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    Revision:
+      description: Written; the member's revision after the write.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [revision]
+            properties:
+              revision: { $ref: "#/components/schemas/Revision" }
+    RoleWritten:
+      description: The role after the write and the revision.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [role, revision]
+            properties:
+              role: { $ref: "#/components/schemas/Role" }
+              revision: { $ref: "#/components/schemas/Revision" }
+
+  schemas:
+    Revision:
+      type: string
+      pattern: "^(0|[1-9][0-9]{0,18})$"
+    Key:
+      type: string
+      pattern: "^[a-z][a-z0-9_-]*(\\.[a-z0-9_-]+)+$"
+    RoleCode:
+      type: string
+      minLength: 1
+      maxLength: 128
+    Level:
+      type: string
+      enum: [own, dept, subtree, all]
+    ObjectRef:
+      type: object
+      required: [type, id]
+      properties:
+        type: { type: string }
+        id: { type: string }
+    Actor:
+      type: object
+      required: [sub, kind]
+      properties:
+        sub: { type: string }
+        kind: { type: string, enum: [user, agent, svc] }
+        act: { $ref: "#/components/schemas/Actor" }
+    Principal:
+      type: object
+      required: [sub, roles]
+      properties:
+        sub: { type: string }
+        roles: { type: array, items: { type: string } }
+        dept_path: { type: string }
+        tenant_id: { type: string }
+        act: { $ref: "#/components/schemas/Actor" }
+        ceil: { type: array, items: { type: string } }
+        dg: { type: string }
+        iat: { type: integer }
+    Fact:
+      type: object
+      required: [kind, source, detail]
+      properties:
+        kind: { type: string, enum: [role_key, level, dimension, share, relation, delegation, ceiling, field, capability] }
+        source: { type: string }
+        detail: { type: string }
+    Explanation:
+      type: object
+      required: [allowed, reasons, missing]
+      properties:
+        allowed: { type: boolean }
+        reasons: { type: array, items: { $ref: "#/components/schemas/Fact" } }
+        missing: { type: array, items: { $ref: "#/components/schemas/Fact" } }
+        paths:
+          type: array
+          items:
+            type: object
+            required: [hops]
+            properties:
+              hops: { type: array, items: { $ref: "../schemas/changefeed.schema.json#/$defs/tuple" } }
+    Role:
+      type: object
+      required: [code, name, is_system, keys, levels, values, version]
+      properties:
+        code: { $ref: "#/components/schemas/RoleCode" }
+        name: { type: string }
+        is_system: { type: boolean }
+        keys: { type: array, items: { $ref: "#/components/schemas/Key" } }
+        levels: { type: object, additionalProperties: { $ref: "#/components/schemas/Level" } }
+        default_level: { $ref: "#/components/schemas/Level" }
+        values: { type: object, additionalProperties: { type: array, items: { type: string } } }
+        valid_from: { type: [string, "null"], format: date-time }
+        valid_until: { type: [string, "null"], format: date-time }
+        version: { type: integer }
+    Profile:
+      type: object
+      required: [code, keys, max_level, relations]
+      properties:
+        code: { type: string }
+        name: { type: string }
+        keys: { type: array, items: { $ref: "#/components/schemas/Key" } }
+        fields: { type: array, items: { $ref: "#/components/schemas/Key" } }
+        max_level: { $ref: "#/components/schemas/Level" }
+        relations: { type: array, items: { type: string } }
+    Delegation:
+      type: object
+      required: [id, mode, from_sub, to, keys, created_by, created_at]
+      properties:
+        id: { type: string }
+        mode: { type: string, enum: [on_behalf, act_as] }
+        from_sub: { type: string }
+        to: { $ref: "#/components/schemas/Actor" }
+        keys: { type: array, items: { $ref: "#/components/schemas/Key" } }
+        profiles: { type: array, items: { type: string } }
+        valid_from: { type: string, format: date-time }
+        valid_until: { type: string, format: date-time }
+        created_by: { $ref: "#/components/schemas/Actor" }
+        created_at: { type: string, format: date-time }
+        revoked_at: { type: [string, "null"], format: date-time }
+        reason: { type: string }
+    DelegationWithRevision:
+      type: object
+      required: [delegation, revision]
+      properties:
+        delegation: { $ref: "#/components/schemas/Delegation" }
+        revision: { $ref: "#/components/schemas/Revision" }
+    DelegationPage:
+      type: object
+      required: [delegations, next_cursor]
+      properties:
+        delegations: { type: array, items: { $ref: "#/components/schemas/Delegation" } }
+        next_cursor: { type: string }
+    Share:
+      type: object
+      required: [share_id, object, relation, subject, source, created_at]
+      properties:
+        share_id: { type: string }
+        object: { $ref: "#/components/schemas/ObjectRef" }
+        relation: { type: string }
+        subject: { type: string }
+        expires_at: { type: [string, "null"], format: date-time }
+        source: { type: string, description: The owning component. }
+        created_by: { $ref: "#/components/schemas/Actor" }
+        created_at: { type: string, format: date-time }
+    SharePage:
+      type: object
+      required: [shares, next_cursor]
+      properties:
+        shares: { type: array, items: { $ref: "#/components/schemas/Share" } }
+        next_cursor: { type: string }
+    KeyAccess:
+      type: object
+      required: [level]
+      properties:
+        level: { $ref: "#/components/schemas/Level" }
+        values:
+          description: Dimension values of this key (E7); org values are custom department subtrees.
+          type: object
+          additionalProperties: { type: array, items: { type: string } }
+        via_delegation: { type: array, items: { type: string }, description: Delegation ids that give this key on_behalf. }
+    MyAccess:
+      type: object
+      required: [sub, dept, components, capabilities, keys, values, fields, ceil, delegations, revision]
+      properties:
+        sub: { type: string }
+        act: { oneOf: [ { $ref: "#/components/schemas/Actor" }, { type: "null" } ] }
+        tenant_id: { type: string }
+        dept:
+          type: object
+          required: [path, has_dept]
+          properties:
+            path: { type: string }
+            has_dept: { type: boolean }
+        components:
+          description: Installed components in which the user holds at least one key.
+          type: array
+          items: { type: string }
+        capabilities: { $ref: "../schemas/bundle.schema.json#/$defs/capabilities" }
+        keys:
+          description: Keys after ceilings, with level and values (E5-E7).
+          type: object
+          additionalProperties: { $ref: "#/components/schemas/KeyAccess" }
+        values:
+          description: Union of the values over all keys, for banners ("no warehouse assigned").
+          type: object
+          additionalProperties: { type: array, items: { type: string } }
+        fields:
+          description: Field keys held after ceilings.
+          type: array
+          items: { $ref: "#/components/schemas/Key" }
+        ceil: { type: array, items: { type: string } }
+        delegations:
+          type: object
+          required: [to_me, by_me]
+          properties:
+            to_me: { type: array, items: { $ref: "#/components/schemas/Delegation" } }
+            by_me: { type: array, items: { $ref: "#/components/schemas/Delegation" } }
+        revision: { $ref: "#/components/schemas/Revision" }
+    UserAccess:
+      allOf:
+        - $ref: "#/components/schemas/MyAccess"
+        - type: object
+          required: [granted_by]
+          properties:
+            granted_by:
+              description: Key or dimension value to the roles and delegations that give it.
+              type: object
+              additionalProperties: { type: array, items: { type: string } }
+    ImportRejection:
+      type: object
+      required: [line, kind, reason]
+      properties:
+        line: { type: integer }
+        kind: { type: string }
+        reason: { type: string, description: "A reason of errors.yaml or CAPABILITY_UNAVAILABLE." }
+        detail: { type: string }
+    Problem:
+      type: object
+      required: [type, title, status, code, reason, domain]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        code: { type: string }
+        reason: { type: string }
+        domain: { type: string }
+        metadata: { type: object, additionalProperties: { type: string } }
+        violations:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              reason: { type: string }
+              description: { type: string }
+        instance: { type: string }
+        request_id: { type: string }
+        trace_id: { type: string }

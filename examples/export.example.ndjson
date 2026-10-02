@@ -1,0 +1,13 @@
+{"catalog_digest":"sha256:0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f","contract":"authz/2.0","exported_at":"2026-10-02T12:00:00Z","format":"authz-export/1","kind":"header","kinds":["role","user_role","user_dept","profile","delegation","tuple","relation_group"],"member":{"id":"infra/authz","version":"3.0.0"},"revision":"18234"}
+{"code":"dev_east_mgr","is_system":false,"keys":["erp.sales.view"],"kind":"role","levels":{"erp.sales.view":"subtree"},"name":"East region manager","values":{"org":["/1/3/","/1/7/"]}}
+{"code":"dev_sales_rep","is_system":false,"keys":["erp.sales.cancel","erp.sales.pricing.read","erp.sales.view"],"kind":"role","levels":{"erp.sales.cancel":"own","erp.sales.view":"subtree"},"name":"Sales rep"}
+{"code":"superuser","default_level":"all","is_system":true,"keys":["erp.inventory.view","erp.sales.view"],"kind":"role","name":"Superuser","values":{"legal_entity":["*"],"warehouse":["*"]}}
+{"kind":"user_role","role":"dev_sales_rep","sub":"u_A"}
+{"expires_at":"2026-12-31T00:00:00Z","kind":"user_role","role":"dev_east_mgr","sub":"u_B"}
+{"dept_path":"/1/12/","kind":"user_dept","sub":"u_A"}
+{"dept_path":"/1/3/","kind":"user_dept","sub":"u_B"}
+{"code":"view_as_ro","fields":[],"keys":["erp.inventory.view","erp.sales.view"],"kind":"profile","max_level":"all","relations":["viewer"]}
+{"created_at":"2025-09-30T08:00:00Z","created_by":{"kind":"user","sub":"u_A"},"from":"u_A","from_ts":1759276800,"id":"dg_91","keys":["infra.workflow.task.act","infra.workflow.task.view"],"kind":"delegation","mode":"on_behalf","to":{"kind":"user","sub":"u_B"},"until":1759881600}
+{"created_by":{"kind":"user","sub":"u_A"},"expires_at":"2026-10-09T00:00:00Z","kind":"tuple","object":{"id":"0192f1c2-7a00-7000-8000-000000000042","type":"erp.sales.order"},"relation":"viewer","source":"erp/sales","subject":"user:u_B"}
+{"kind":"relation_group","object":{"id":"0192f1c2-7a00-7000-8000-000000000007","type":"crm.opportunity.opportunity"},"relation":"member","source":"crm/opportunity","subjects":[{"subject":"user:u_A"},{"subject":"user:u_B"}],"version":4}
+{"counts":{"delegation":1,"profile":1,"relation_group":1,"role":3,"tuple":1,"user_dept":2,"user_role":2},"kind":"footer","sha256":"169a91d09b3c1061d4639dbd8cf4ad0887107b3da42a39960f85d2e38fef3c9c"}

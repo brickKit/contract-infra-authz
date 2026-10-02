@@ -1,0 +1,14 @@
+version: v2
+modules:
+  - path: proto
+lint:
+  use:
+    - STANDARD
+  except:
+    # The service keeps the name foundations 20 gives it,
+    # infra.authz.v2.AuthzProvider: it names the role in the slot family
+    # ("the provider"), and every document already uses it.
+    - SERVICE_SUFFIX
+breaking:
+  use:
+    - FILE

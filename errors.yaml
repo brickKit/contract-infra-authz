@@ -1,0 +1,165 @@
+# Error reasons of the authz family, authz/2.0.
+#
+# Format of be-protocol P4.4 (contracts/errors.yaml). Every member answers
+# these reasons with domain "infra/authz", whatever its own component ID,
+# so the frontend translates one table for the whole family. Reasons of the
+# runtime (domain "be": CAPABILITY_UNAVAILABLE, IDEMPOTENCY_MISMATCH,
+# MISSING_CALLER, BATCH_TOO_LARGE, MISSING_PERMISSION, TOKEN_STALE, ...) are
+# not repeated here. Append-only: a reason is never renamed, removed or
+# given a new meaning; one no longer used gets `deprecated`.
+
+domain: infra/authz
+
+reasons:
+  - reason: SYSTEM_ROLE_PROTECTED
+    code: FAILED_PRECONDITION
+    http: 400
+    params: [role_code]
+    title: { zh: 系统角色不可修改, en: System role is protected }
+    message: { zh: "角色 {role_code} 是系统角色，不能删除或改动", en: "Role {role_code} is a system role and cannot be changed or deleted" }
+    since: "2.0"
+    deprecated: ""
+  - reason: LAST_ADMIN
+    code: FAILED_PRECONDITION
+    http: 400
+    params: [sub]
+    title: { zh: 不能撤销最后一个管理员, en: Last administrator }
+    message: { zh: 撤销后将没有人持有 infra.authz.admin, en: "After this change nobody would hold infra.authz.admin" }
+    since: "2.0"
+    deprecated: ""
+  - reason: ROLE_EXISTS
+    code: ALREADY_EXISTS
+    http: 409
+    params: [role_code]
+    title: { zh: 角色已存在, en: Role exists }
+    message: { zh: "角色 {role_code} 已存在", en: "Role {role_code} already exists" }
+    since: "2.0"
+    deprecated: ""
+  - reason: UNKNOWN_ROLE
+    code: NOT_FOUND
+    http: 404
+    params: [role_code]
+    title: { zh: 角色不存在, en: Unknown role }
+    message: { zh: "角色 {role_code} 不存在", en: "Role {role_code} does not exist" }
+    since: "2.0"
+    deprecated: ""
+  - reason: UNKNOWN_KEY
+    code: INVALID_ARGUMENT
+    http: 400
+    params: [key]
+    title: { zh: 权限键不在目录中, en: Unknown permission key }
+    message: { zh: "权限键 {key} 不在权限目录中", en: "Permission key {key} is not in the catalogue" }
+    since: "2.0"
+    deprecated: ""
+  - reason: KEY_DEPRECATED
+    code: FAILED_PRECONDITION
+    http: 400
+    params: [key]
+    title: { zh: 权限键已退役, en: Permission key retired }
+    message: { zh: "权限键 {key} 已退役，不能再授予", en: "Permission key {key} is retired and cannot be granted" }
+    since: "2.0"
+    deprecated: ""
+  - reason: UNKNOWN_DIMENSION
+    code: INVALID_ARGUMENT
+    http: 400
+    params: [dimension]
+    title: { zh: 维度不在目录中, en: Unknown dimension }
+    message: { zh: "数据范围维度 {dimension} 不在目录中", en: "Data-scope dimension {dimension} is not in the catalogue" }
+    since: "2.0"
+    deprecated: ""
+  - reason: INVALID_LEVEL
+    code: INVALID_ARGUMENT
+    http: 400
+    params: [level]
+    title: { zh: 档位无效, en: Invalid level }
+    message: { zh: "档位必须是 own、dept、subtree、all 之一，收到 {level}", en: "Level must be one of own, dept, subtree, all; got {level}" }
+    since: "2.0"
+    deprecated: ""
+  - reason: INVALID_DEPT_PATH
+    code: INVALID_ARGUMENT
+    http: 400
+    params: [dept_path]
+    title: { zh: 部门路径无效, en: Invalid department path }
+    message: { zh: "部门路径 {dept_path} 必须以 / 开头并以 / 结尾", en: "Department path {dept_path} must start and end with /" }
+    since: "2.0"
+    deprecated: ""
+  - reason: UNKNOWN_RESOURCE_TYPE
+    code: INVALID_ARGUMENT
+    http: 400
+    params: [type]
+    title: { zh: 资源类型不在目录中, en: Unknown resource type }
+    message: { zh: "资源类型 {type} 不在目录中", en: "Resource type {type} is not in the catalogue" }
+    since: "2.0"
+    deprecated: ""
+  - reason: UNKNOWN_RELATION
+    code: INVALID_ARGUMENT
+    http: 400
+    params: [type, relation]
+    title: { zh: 关系不存在, en: Unknown relation }
+    message: { zh: "资源类型 {type} 没有关系 {relation}", en: "Resource type {type} has no relation {relation}" }
+    since: "2.0"
+    deprecated: ""
+  - reason: SUBJECT_KIND_NOT_ALLOWED
+    code: INVALID_ARGUMENT
+    http: 400
+    params: [type, subject]
+    title: { zh: 不能共享给这类主体, en: Subject kind not allowed }
+    message: { zh: "{type} 不能共享给 {subject}", en: "{type} cannot be shared with {subject}" }
+    since: "2.0"
+    deprecated: ""
+  - reason: NOT_TYPE_OWNER
+    code: PERMISSION_DENIED
+    http: 403
+    params: [type, caller]
+    title: { zh: 不是该资源类型的属主, en: Not the type's owner }
+    message: { zh: "只有 {type} 的属主组件能写它的元组，调用方是 {caller}", en: "Only the owner of {type} may write its tuples; the caller is {caller}" }
+    since: "2.0"
+    deprecated: ""
+  - reason: RELATION_OWNED_BY_COMPONENT
+    code: FAILED_PRECONDITION
+    http: 400
+    params: [type, relation]
+    title: { zh: 关系由业务组件维护, en: Relation owned by its component }
+    message: { zh: "{type} 的关系 {relation} 由属主组件维护，请到业务页面修改", en: "Relation {relation} of {type} is maintained by its owning component" }
+    since: "2.0"
+    deprecated: ""
+  - reason: DELEGATOR_LACKS_KEY
+    code: FAILED_PRECONDITION
+    http: 400
+    params: [key]
+    title: { zh: 委托人没有该权限, en: Delegator lacks the key }
+    message: { zh: "不能委托自己没有的权限 {key}", en: "A delegation cannot include {key}, which the delegator does not hold" }
+    since: "2.0"
+    deprecated: ""
+  - reason: KEY_NOT_DELEGABLE
+    code: FAILED_PRECONDITION
+    http: 400
+    params: [key]
+    title: { zh: 该权限不可下放, en: Key not delegable }
+    message: { zh: "权限 {key} 不能放进代理人天花板", en: "Key {key} cannot be placed in a ceiling profile" }
+    since: "2.0"
+    deprecated: "reserved (A4): shape only, no member raises it in 2.0"
+  - reason: UNKNOWN_DELEGATION
+    code: NOT_FOUND
+    http: 404
+    params: [id]
+    title: { zh: 委托不存在, en: Unknown delegation }
+    message: { zh: "委托 {id} 不存在", en: "Delegation {id} does not exist" }
+    since: "2.0"
+    deprecated: ""
+  - reason: CHANGES_EXPIRED
+    code: OUT_OF_RANGE
+    http: 410
+    params: [after, floor, head]
+    title: { zh: 变更流位置不可用, en: Changefeed position unavailable }
+    message: { zh: "无法从 {after} 续拉（可服务范围 {floor}–{head}），请用快照重建", en: "Cannot continue after {after} (servable {floor}..{head}); rebuild from the snapshot" }
+    since: "2.0"
+    deprecated: ""
+  - reason: IMPORT_REJECTED
+    code: FAILED_PRECONDITION
+    http: 400
+    params: [rejected, first_line]
+    title: { zh: 导入被拒绝, en: Import rejected }
+    message: { zh: "{rejected} 行无法导入（首个在第 {first_line} 行），未写入任何数据", en: "{rejected} records cannot be held (first at line {first_line}); nothing was written" }
+    since: "2.0"
+    deprecated: ""
