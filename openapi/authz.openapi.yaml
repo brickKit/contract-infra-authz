@@ -13,9 +13,11 @@ info:
     - `/authz/v2/*` is the provider plane: system traffic from the runtimes
       of components, never routed through the edge. Callers send `be-caller`
       (their component ID); in 2.0 a member records it and does not reject
-      a call without it.
+      a call without it. Its operations are marked `x-be-internal: true`
+      (be-protocol P3.16): never routed, exempt from edge coverage.
     - `/api/me/*` and `/api/admin/*` go through the edge with a user's
-      access token. Admin operations need `infra.authz.admin`.
+      access token; each operation declares its guard in `x-be-permission`
+      (`authenticated` for `/api/me/*`, `infra.authz.admin` for admin).
     - `x-capability` on an operation names the capability it belongs to
       (capabilities.yaml). A member that does not declare it answers `501`
       with reason `CAPABILITY_UNAVAILABLE`, domain `be`, and
@@ -48,6 +50,7 @@ paths:
   /authz/v2/bundle:
     get:
       tags: [provider]
+      x-be-internal: true
       operationId: getBundle
       summary: The bundle v2, conditional on ETag
       description: Polled every 15 s and on every poke (be-protocol P6.1). A consumer refuses a body whose contract is not authz/2.*.
@@ -71,6 +74,7 @@ paths:
   /authz/v2/changes:
     get:
       tags: [provider]
+      x-be-internal: true
       operationId: readChanges
       summary: Changefeed of direct tuples after a revision
       description: |
@@ -108,6 +112,7 @@ paths:
   /authz/v2/tuples:
     get:
       tags: [provider]
+      x-be-internal: true
       operationId: readTuples
       summary: Snapshot of one type's direct tuples
       x-capability: sharing
@@ -132,6 +137,7 @@ paths:
   /authz/v2/catalog:
     get:
       tags: [provider]
+      x-be-internal: true
       operationId: getCatalog
       summary: The catalogue the member holds
       x-capability: core
@@ -154,6 +160,7 @@ paths:
   /authz/v2/explain:
     post:
       tags: [provider]
+      x-be-internal: true
       operationId: explainProvider
       summary: Provider-level explanation for a principal
       x-capability: core
@@ -181,6 +188,7 @@ paths:
   /api/me/access:
     get:
       tags: [self]
+      x-be-permission: authenticated
       operationId: getMyAccess
       summary: Everything the frontend needs about the signed-in user, in one answer
       description: Replaces /api/me/permissions, and carries the installed components that /api/tenant/features used to list (the identity member's public /api/tenant/features keeps only what the login page needs, contract-infra-iam). Authenticated; the user is the token's sub.
@@ -196,6 +204,7 @@ paths:
   /api/me/delegations:
     get:
       tags: [self]
+      x-be-permission: authenticated
       operationId: listMyDelegations
       summary: Delegations from and to the signed-in user
       x-capability: delegation
@@ -215,6 +224,7 @@ paths:
         "501": { $ref: "#/components/responses/Problem" }
     post:
       tags: [self]
+      x-be-permission: authenticated
       operationId: createMyDelegation
       summary: Delegate some of my keys on_behalf to another user for a period
       x-capability: delegation
@@ -244,6 +254,7 @@ paths:
   /api/me/delegations/{id}:
     delete:
       tags: [self]
+      x-be-permission: authenticated
       operationId: revokeMyDelegation
       summary: Revoke a delegation I made
       x-capability: delegation
@@ -260,6 +271,7 @@ paths:
   /api/me/shares:
     get:
       tags: [self]
+      x-be-permission: authenticated
       operationId: listMyShares
       summary: Shares made by me, or shared with me, across components
       x-capability: sharing
@@ -282,6 +294,7 @@ paths:
   /api/admin/roles:
     get:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: listRoles
       summary: Roles, without the per-user roles u:<sub>
       x-capability: core
@@ -301,6 +314,7 @@ paths:
                   next_cursor: { type: string }
     post:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: createRole
       summary: Create a role
       x-capability: admin_write
@@ -325,6 +339,7 @@ paths:
       - $ref: "#/components/parameters/RoleCodePath"
     get:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: getRole
       summary: One role with its keys, levels, values and window
       x-capability: core
@@ -337,6 +352,7 @@ paths:
         "404": { $ref: "#/components/responses/Problem" }
     patch:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: updateRole
       summary: Rename a role, set its default level or validity window
       x-capability: admin_write
@@ -357,6 +373,7 @@ paths:
         "501": { $ref: "#/components/responses/Problem" }
     delete:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: deleteRole
       summary: Delete a role (never a system role)
       x-capability: admin_write
@@ -371,6 +388,7 @@ paths:
       - $ref: "#/components/parameters/KeyPath"
     put:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: grantRoleKey
       summary: Grant a key to a role, optionally with a level
       x-capability: admin_write
@@ -388,6 +406,7 @@ paths:
         "501": { $ref: "#/components/responses/Problem" }
     delete:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: revokeRoleKey
       summary: Remove a key (and its level) from a role
       x-capability: admin_write
@@ -407,6 +426,7 @@ paths:
         schema: { type: string }
     put:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: addRoleValue
       summary: Give a role a dimension value
       x-capability: admin_write
@@ -416,6 +436,7 @@ paths:
         "501": { $ref: "#/components/responses/Problem" }
     delete:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: removeRoleValue
       summary: Take a dimension value from a role
       x-capability: admin_write
@@ -426,6 +447,7 @@ paths:
   /api/admin/keys:
     get:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: listKeys
       summary: The permission-key catalogue
       x-capability: core
@@ -449,6 +471,7 @@ paths:
   /api/admin/keys/{key}/holders:
     get:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: listKeyHolders
       summary: Who holds a key, through which role ("who can close the period?")
       x-capability: core
@@ -472,6 +495,7 @@ paths:
   /api/admin/dimensions:
     get:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: listDimensions
       summary: The data-scope dimension catalogue
       x-capability: core
@@ -489,6 +513,7 @@ paths:
   /api/admin/resource-types:
     get:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: listResourceTypes
       summary: The resource-type catalogue with relations and share rules
       x-capability: core
@@ -506,6 +531,7 @@ paths:
   /api/admin/users/{sub}/access:
     get:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: getUserAccess
       summary: A user's access with the source of every grant
       description: Same shape as /api/me/access plus granted_by on every key and value; answers "why can, why cannot this person".
@@ -526,6 +552,7 @@ paths:
       - $ref: "#/components/parameters/RoleCodePath"
     put:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: grantUserRole
       summary: Give a user a role, optionally until a date; writes stale_since
       x-capability: admin_write
@@ -543,6 +570,7 @@ paths:
         "501": { $ref: "#/components/responses/Problem" }
     delete:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: revokeUserRole
       summary: Take a role from a user (never the last administrator); writes stale_since
       x-capability: admin_write
@@ -557,6 +585,7 @@ paths:
       - $ref: "#/components/parameters/KeyPath"
     put:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: grantUserKey
       summary: Give one user one key (through the per-user role u:<sub>)
       x-capability: admin_write
@@ -574,6 +603,7 @@ paths:
         "501": { $ref: "#/components/responses/Problem" }
     delete:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: revokeUserKey
       summary: Take one key from one user's per-user role
       x-capability: admin_write
@@ -584,6 +614,7 @@ paths:
   /api/admin/users/{sub}/department:
     put:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: setUserDepartment
       summary: Assign a user's department; writes stale_since
       description: The source of departments moves to mdm/org; until its design settles the split with the IAM directory, the member holds the assignment and ResolveClaims reads it.
@@ -607,6 +638,7 @@ paths:
   /api/admin/users/{sub}/kick:
     post:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: kickUser
       summary: Revoke every role of a user at once; writes stale_since
       x-capability: admin_write
@@ -620,6 +652,7 @@ paths:
   /api/admin/profiles:
     get:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: listProfiles
       summary: Ceiling profiles
       x-capability: delegation
@@ -640,6 +673,7 @@ paths:
       - { name: code, in: path, required: true, schema: { type: string } }
     put:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: putProfile
       summary: Create or replace a ceiling profile
       x-capability: delegation
@@ -654,6 +688,7 @@ paths:
         "501": { $ref: "#/components/responses/Problem" }
     delete:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: deleteProfile
       summary: Delete a ceiling profile; tokens naming it then allow nothing
       x-capability: delegation
@@ -664,6 +699,7 @@ paths:
   /api/admin/delegations:
     get:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: listDelegations
       summary: Every delegation, filterable by user
       x-capability: delegation
@@ -683,6 +719,7 @@ paths:
   /api/admin/delegations/{id}:
     delete:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: revokeDelegation
       summary: Revoke any delegation
       x-capability: delegation
@@ -700,6 +737,7 @@ paths:
   /api/admin/shares:
     get:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: listShares
       summary: Shares for review, by subject or by record
       x-capability: sharing
@@ -720,6 +758,7 @@ paths:
   /api/admin/shares/{share_id}:
     delete:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: revokeShare
       summary: Revoke a share (authz-owned tuples only)
       x-capability: sharing
@@ -734,6 +773,7 @@ paths:
   /api/admin/access-review:
     get:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: reviewAccess
       summary: Who can see one record, through rules, shares and relations
       description: The member asks the owning component for the record's rule attributes through its resource contract, then expands holders.
@@ -767,6 +807,7 @@ paths:
   /api/admin/export:
     get:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: exportAssignments
       summary: Export assignments as NDJSON (authz-export/1)
       description: Taken from a member whose writes are stopped (README, "Moving assignments between members").
@@ -787,6 +828,7 @@ paths:
   /api/admin/import:
     post:
       tags: [admin]
+      x-be-permission: infra.authz.admin
       operationId: importAssignments
       summary: Import an NDJSON export, all or nothing
       x-capability: admin_write

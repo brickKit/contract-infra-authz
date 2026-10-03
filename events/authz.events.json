@@ -415,6 +415,7 @@
   "signals": [
     {
       "subject": "infra.authz.changed.v1",
+      "x-signal": true,
       "transport": "core NATS, not JetStream, not the outbox (be-protocol P12.10)",
       "capability": "core",
       "note": "Poke after any change that moves the revision. Best effort; loss only delays the next poll (bundle 15 s, changes 5 s). In a shell every member subscribes once.",

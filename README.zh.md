@@ -48,8 +48,8 @@ authz 槽位的族契约，版本 **authz/2.0**：每个授权成员必须实现
 
 - 每个消费者都经两个共享键找到已安装的成员，它们在 `config/vars.yaml` 里各写一次，写成指向该成员的 brickKit `$endpoint:` 引用：`AUTHZ_URL: $endpoint:infra/authz`（REST 基地址）和 `AUTHZ_GRPC_URL: $endpoint:infra/authz:grpc`（gRPC 地址；拨号目标是去掉 `http://` 的值），be-protocol P2.10。换成员只改这两行，别的都不动；值跟着版本、外壳和本机运行走。任何组件、任何 IAM 成员都不声明对 authz 成员的依赖：被依赖的成员无法替换（0104、0107）。
 - **provider 面**（系统流量，永不经边缘）：`AUTHZ_URL` 下的 `GET /authz/v2/bundle`、`/authz/v2/changes`、`/authz/v2/tuples`、`/authz/v2/catalog`、`POST /authz/v2/explain`，以及 `AUTHZ_GRPC_URL` 上的 gRPC 服务 `AuthzProvider`。成员把 gRPC 额外端口命名为 `grpc` 并写 `protocol: grpc`（be-protocol P7.14），端口号随它定：没有任何东西从 HTTP 端口推算它。调用方带 `be-caller`。
-- **成员的清单**：和任何组件一样（be-protocol P20，“`component.yaml` 里声明什么”），另外 `events.publishes` 是 `events/authz.events.json` 里 `events` 的每个主题，`events.subscribes` 是 `consumes` 和 `inbound_events` 里的主题（P12.16；`signals` 里的 poke 不列）。
-- **边缘**：`/api/me/*`（任何已登录用户）和 `/api/admin/*`（键 `infra.authz.admin`）。成员把它们写进 `edge_routes`，`/authz/v2/*` 永不写进去。
+- **成员的清单**：和任何组件一样（be-protocol P20，“`component.yaml` 里声明什么”），另外 `events.publishes` 是 `events/authz.events.json` 里 `events` 的每个主题，`events.subscribes` 是 `consumes` 和 `inbound_events` 里的主题（P12.16；`signals` 里标了 `x-signal: true` 的 poke 不列）。
+- **边缘**：`/api/me/*`（任何已登录用户）和 `/api/admin/*`（键 `infra.authz.admin`）。成员把它们写进 `edge_routes`，`/authz/v2/*` 永不写进去，它的 operation 标 `x-be-internal: true`（be-protocol P3.16）；其余每个 operation 都声明 `x-be-permission`。
 
 ## 能力
 

@@ -48,8 +48,8 @@ The contract is complete from 2.0 on; a member opens capabilities over time with
 
 - Every consumer reaches the installed member through two shared keys, written once in `config/vars.yaml` as brickKit `$endpoint:` references to the member: `AUTHZ_URL: $endpoint:infra/authz` (the REST base) and `AUTHZ_GRPC_URL: $endpoint:infra/authz:grpc` (the gRPC address; the dial target is the value without `http://`), be-protocol P2.10. Swapping the member changes these two lines and nothing else; the values follow versions, shells and local runs. No component, and no IAM member, declares a dependency on an authz member: a depended-on member could not be swapped (0104, 0107).
 - **Provider plane** (system traffic, never through the edge): `GET /authz/v2/bundle`, `/authz/v2/changes`, `/authz/v2/tuples`, `/authz/v2/catalog`, `POST /authz/v2/explain` under `AUTHZ_URL`, and the gRPC service `AuthzProvider` at `AUTHZ_GRPC_URL`. A member names its gRPC extra port `grpc` with `protocol: grpc` (be-protocol P7.14) and may give it any number: nothing derives it from the HTTP port. Callers send `be-caller`.
-- **Member manifest**: like any component (be-protocol P20, *What `component.yaml` declares*), plus `events.publishes` = every subject in `events/authz.events.json` `events` and `events.subscribes` = the subjects of `consumes` and `inbound_events` (P12.16; the poke in `signals` is not listed).
-- **Edge**: `/api/me/*` (any signed-in user) and `/api/admin/*` (key `infra.authz.admin`). A member lists them in its `edge_routes`, never `/authz/v2/*`.
+- **Member manifest**: like any component (be-protocol P20, *What `component.yaml` declares*), plus `events.publishes` = every subject in `events/authz.events.json` `events` and `events.subscribes` = the subjects of `consumes` and `inbound_events` (P12.16; the poke in `signals`, marked `x-signal: true`, is not listed).
+- **Edge**: `/api/me/*` (any signed-in user) and `/api/admin/*` (key `infra.authz.admin`). A member lists them in its `edge_routes`, never `/authz/v2/*`, whose operations are `x-be-internal: true` (be-protocol P3.16); every other operation declares `x-be-permission`.
 
 ## Capabilities
 

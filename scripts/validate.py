@@ -129,6 +129,9 @@ SUBJECT = r"^[a-z][a-z0-9]*(_[a-z0-9]+)*(\.[a-z][a-z0-9]*(_[a-z0-9]+)*){2,}\.v[1
 for ev in events["events"] + events["inbound_events"] + events["signals"]:
     if not re.match(SUBJECT, ev["subject"]):
         fail(f"events {ev['subject']}: not a be-protocol P12.3 subject")
+for ev in events["signals"]:
+    if ev.get("x-signal") is not True:
+        fail(f"signals {ev['subject']}: a poke is marked x-signal: true (be-protocol P12.10)")
 for ev in events.get("consumes", []):
     if not re.match(SUBJECT, ev["subject"]) or ev["subject"].startswith("infra.authz."):
         fail(f"consumes {ev['subject']}: must be another family's P12.3 subject")
@@ -149,6 +152,12 @@ for path, item in api["paths"].items():
             cap = op.get("x-capability")
             if cap not in names:
                 fail(f"openapi {method.upper()} {path}: x-capability {cap!r} unknown")
+            # be-protocol P3.16: a guard on every operation, fail closed; the provider plane is x-be-internal
+            internal = op.get("x-be-internal") is True
+            if not internal and not op.get("x-be-permission"):
+                fail(f"openapi {method.upper()} {path}: no x-be-permission and not x-be-internal")
+            if internal != path.startswith("/authz/v2/"):
+                fail(f"openapi {method.upper()} {path}: x-be-internal must mark exactly the provider plane")
 
 errors = load("errors.yaml")
 reasons = [r["reason"] for r in errors["reasons"]]
