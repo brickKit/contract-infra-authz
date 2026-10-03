@@ -15,7 +15,7 @@ authz 槽位的族契约，版本 **authz/2.0**：每个授权成员必须实现
 | 成员 | 状态 | 声明（`provides_capabilities`） | 适合 |
 |---|---|---|---|
 | `infra/authz`（原生，默认） | 3.0.0：core、admin_write；之后在 phase 06 内 | sharing、relation_sync、check、explain_paths（随 06c）；delegation、access_review、impersonation（06c 之后）；`list_objects` 只到一跳 | 几乎所有 ERP / CRM 部署，一个 PostgreSQL |
-| `infra/authz-static` | phase 06 | 只有 core；策略文件 `AUTHZ_POLICY_FILE` | 演示、十人左右、边缘站点、测试夹具 |
+| `infra/authz-static` | phase 06 | 只有 core；策略文件在 `AUTHZ_POLICY_PATH` | 演示、十人左右、边缘站点、测试夹具 |
 | `infra/authz-openfga` | phase 06 | core、sharing、relation_sync、check、graph、list_objects、explain_paths、access_review | 协作重的部署、多跳关系 |
 | Cedar / OPA | 不建 | core、conditions（只用于动作） | 有真实 ABAC 动作规则的客户 |
 
@@ -46,8 +46,9 @@ authz 槽位的族契约，版本 **authz/2.0**：每个授权成员必须实现
 
 ## 寻址与两个面
 
-- 每个消费者都经共享键 `AUTHZ_URL`（成员自己服务名的基地址，在 `config/vars.yaml`）找到已安装的成员。任何组件、任何 IAM 成员都不声明对 authz 成员的依赖：被依赖的成员无法替换（0104、0107）。
-- **provider 面**（系统流量，永不经边缘）：`GET /authz/v2/bundle`、`/authz/v2/changes`、`/authz/v2/tuples`、`/authz/v2/catalog`、`POST /authz/v2/explain`，以及成员 `grpc` 端口上的 gRPC 服务，调用方从 `AUTHZ_URL` 推出它的目标：URL 的主机加端口 + 1000（be-protocol P2.10），所以成员把自己的 `grpc` 端口登记为 HTTP 端口 + 1000。调用方带 `be-caller`。
+- 每个消费者都经两个共享键找到已安装的成员，它们在 `config/vars.yaml` 里各写一次，写成指向该成员的 brickKit `$endpoint:` 引用：`AUTHZ_URL: $endpoint:infra/authz`（REST 基地址）和 `AUTHZ_GRPC_URL: $endpoint:infra/authz:grpc`（gRPC 地址；拨号目标是去掉 `http://` 的值），be-protocol P2.10。换成员只改这两行，别的都不动；值跟着版本、外壳和本机运行走。任何组件、任何 IAM 成员都不声明对 authz 成员的依赖：被依赖的成员无法替换（0104、0107）。
+- **provider 面**（系统流量，永不经边缘）：`AUTHZ_URL` 下的 `GET /authz/v2/bundle`、`/authz/v2/changes`、`/authz/v2/tuples`、`/authz/v2/catalog`、`POST /authz/v2/explain`，以及 `AUTHZ_GRPC_URL` 上的 gRPC 服务 `AuthzProvider`。成员把 gRPC 额外端口命名为 `grpc` 并写 `protocol: grpc`（be-protocol P7.14），端口号随它定：没有任何东西从 HTTP 端口推算它。调用方带 `be-caller`。
+- **成员的清单**：和任何组件一样（be-protocol P20，“`component.yaml` 里声明什么”），另外 `events.publishes` 是 `events/authz.events.json` 里 `events` 的每个主题，`events.subscribes` 是 `consumes` 和 `inbound_events` 里的主题（P12.16；`signals` 里的 poke 不列）。
 - **边缘**：`/api/me/*`（任何已登录用户）和 `/api/admin/*`（键 `infra.authz.admin`）。成员把它们写进 `edge_routes`，`/authz/v2/*` 永不写进去。
 
 ## 能力
@@ -86,7 +87,7 @@ authz 槽位的族契约，版本 **authz/2.0**：每个授权成员必须实现
 - 成员启动时从三个配置键建目录：`PERMISSION_CATALOG`（`registry/permissions.tsv`）、`DATA_SCOPE_CATALOG`（`registry/data-scopes.tsv`）、`RESOURCE_CATALOG`（be-ops 从每个组件的 `resources` 段生成的 JSON 文件，形状见 `schemas/catalog.schema.json` 的 `resource_types`）。
 - 每次同步后，系统角色 `superuser` 持有全部未退役的键；默认没有人持有 `superuser`。第一位管理员不在这里配置：身份成员在这个人第一次登录时，把共享键 `BOOTSTRAP_ADMIN_LOGIN`（IdP 登录名或邮箱）绑定到一个平台 `sub`，并在用户事件里写明（`bootstrap_admin: true`）；权限成员收到这条事件时授予 `superuser`（*消费的事件*）。`sub` 没法事先配置：第一次登录之前它并不存在（be-protocol P2.11）。
 - `catalog_digest`（bundle 里）= `sha256:` + 目录（`GetCatalog` 返回的形状，数组已排序）的 RFC 8785 规范 JSON 的十六进制 SHA-256。门禁或测试拿它和 be-ops 生成物的摘要比较。
-- 每个成员还接受 `IAM_JWKS_URL`、`IAM_ISSUER`、`TENANT_ID`（像任何组件一样校验管理与本人请求的 token）。成员自己的键（static 成员的 `AUTHZ_POLICY_FILE`）由成员自己定。
+- 每个成员还接受 `IAM_URL`、`IAM_ISSUER`、`TENANT_ID`（像任何组件一样校验管理与本人请求的 token；JWKS 在 `{IAM_URL}/.well-known/jwks.json`）。成员自己的键（static 成员的 `AUTHZ_POLICY_PATH`）由成员自己定；其中的密钥一律是文件，`mount: file`，名字是 `…_FILE`（be-protocol P2.12）。
 
 ## 在成员之间搬授权数据
 
@@ -96,7 +97,7 @@ authz 槽位的族契约，版本 **authz/2.0**：每个授权成员必须实现
 - **导入**（`POST /api/admin/import[?dry_run=true]`，admin_write）要么全成、要么全不成：成员装不下的记录（没有 `sharing` 的成员遇到 `tuple`、不认识的键或类）连同行号和原因一起报告，一行都不写（`400` / `IMPORT_REJECTED`）。同一文件导入两次，结果相同。
 - **跨切换的 revision。** 导入方的第一个 revision 大于 header 的 `revision`，对小于 header revision 的 `after` 一律答 `410`。投影正好停在导出点的组件接着拉；其余的用快照重建。组件什么都不用改。
 - **static 成员。** 导入 `infra/authz-static` 写的是它的策略文件而不是数据库；它装得下的是按 `role,user_role,user_dept` 过滤的导出。
-- **步骤**：停管理写入 → 导出 → `brickkit add` 新成员、`brickkit remove` 旧成员 → `AUTHZ_URL` 指向新成员 → `make gates`（`authz-capability-scan`）→ `dry_run` 导入 → 导入 → 跑一致性测试 → 上线。
+- **步骤**：停管理写入 → 导出 → `brickkit add` 新成员、`brickkit remove` 旧成员 → 把 `config/vars.yaml` 里的 `AUTHZ_URL` 和 `AUTHZ_GRPC_URL` 指向新成员（`$endpoint:<新成员 ID>`，两行）→ `make gates`（`authz-capability-scan`）→ `dry_run` 导入 → 导入 → 跑一致性测试 → 上线。
 - `relation_group` 记录保留 version，之后 version 更旧的同步仍会被丢弃；属主的 outbox 和流里也还留着这些同步，可以重放。
 
 ## 版本

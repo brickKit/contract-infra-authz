@@ -15,7 +15,7 @@ The family contract of the authz slot, version **authz/2.0**: what every authori
 | Member | Status | Declares (`provides_capabilities`) | Fits |
 |---|---|---|---|
 | `infra/authz` (native, default) | 3.0.0: core, admin_write; then, in phase 06 | sharing, relation_sync, check, explain_paths (with 06c); delegation, access_review, impersonation (after 06c); `list_objects` one hop | almost every ERP / CRM deployment, one PostgreSQL |
-| `infra/authz-static` | phase 06 | core only; policy file `AUTHZ_POLICY_FILE` | demos, up to ~10 users, edge sites, test fixtures |
+| `infra/authz-static` | phase 06 | core only; policy file at `AUTHZ_POLICY_PATH` | demos, up to ~10 users, edge sites, test fixtures |
 | `infra/authz-openfga` | phase 06 | core, sharing, relation_sync, check, graph, list_objects, explain_paths, access_review | collaboration-heavy deployments, multi-hop relations |
 | Cedar / OPA | not built | core, conditions (actions only) | real ABAC rules on actions |
 
@@ -46,8 +46,9 @@ The contract is complete from 2.0 on; a member opens capabilities over time with
 
 ## Addressing and planes
 
-- Every consumer reaches the installed member through the shared key `AUTHZ_URL` (base URL by the member's own service name, `config/vars.yaml`). No component, and no IAM member, declares a dependency on an authz member: a depended-on member could not be swapped (0104, 0107).
-- **Provider plane** (system traffic, never through the edge): `GET /authz/v2/bundle`, `/authz/v2/changes`, `/authz/v2/tuples`, `/authz/v2/catalog`, `POST /authz/v2/explain`, and the gRPC service on the member's `grpc` port, whose target callers derive from `AUTHZ_URL`: its host and its port + 1000 (be-protocol P2.10), so a member registers its `grpc` port as its HTTP port + 1000. Callers send `be-caller`.
+- Every consumer reaches the installed member through two shared keys, written once in `config/vars.yaml` as brickKit `$endpoint:` references to the member: `AUTHZ_URL: $endpoint:infra/authz` (the REST base) and `AUTHZ_GRPC_URL: $endpoint:infra/authz:grpc` (the gRPC address; the dial target is the value without `http://`), be-protocol P2.10. Swapping the member changes these two lines and nothing else; the values follow versions, shells and local runs. No component, and no IAM member, declares a dependency on an authz member: a depended-on member could not be swapped (0104, 0107).
+- **Provider plane** (system traffic, never through the edge): `GET /authz/v2/bundle`, `/authz/v2/changes`, `/authz/v2/tuples`, `/authz/v2/catalog`, `POST /authz/v2/explain` under `AUTHZ_URL`, and the gRPC service `AuthzProvider` at `AUTHZ_GRPC_URL`. A member names its gRPC extra port `grpc` with `protocol: grpc` (be-protocol P7.14) and may give it any number: nothing derives it from the HTTP port. Callers send `be-caller`.
+- **Member manifest**: like any component (be-protocol P20, *What `component.yaml` declares*), plus `events.publishes` = every subject in `events/authz.events.json` `events` and `events.subscribes` = the subjects of `consumes` and `inbound_events` (P12.16; the poke in `signals` is not listed).
 - **Edge**: `/api/me/*` (any signed-in user) and `/api/admin/*` (key `infra.authz.admin`). A member lists them in its `edge_routes`, never `/authz/v2/*`.
 
 ## Capabilities
@@ -86,7 +87,7 @@ The contract is complete from 2.0 on; a member opens capabilities over time with
 - A member builds its catalogue at start from three configuration keys: `PERMISSION_CATALOG` (`registry/permissions.tsv`), `DATA_SCOPE_CATALOG` (`registry/data-scopes.tsv`) and `RESOURCE_CATALOG` (a JSON file be-ops generates from every component's `resources` block; shape: `schemas/catalog.schema.json`, `resource_types`).
 - After every sync the system role `superuser` holds every key that is not deprecated; nobody holds `superuser` by default. The first administrator is not configured here: the identity member binds the shared key `BOOTSTRAP_ADMIN_LOGIN` (an IdP login name or e-mail) to a platform `sub` at that person's first login and says so in its user event (`bootstrap_admin: true`); the authorization member grants `superuser` on that event (*Consumed events*). A `sub` cannot be configured in advance: it does not exist before the first login (be-protocol P2.11).
 - `catalog_digest` (bundle) = `sha256:` + hex SHA-256 of the RFC 8785 canonical JSON of the catalogue as `GetCatalog` returns it, arrays sorted. A gate or a test compares it with the digest of what be-ops generated.
-- Every member also accepts `IAM_JWKS_URL`, `IAM_ISSUER` and `TENANT_ID` (to verify admin and self-service tokens like any component). Its own keys (`AUTHZ_POLICY_FILE` for the static member) are its own business.
+- Every member also accepts `IAM_URL`, `IAM_ISSUER` and `TENANT_ID` (to verify admin and self-service tokens like any component; the JWKS is `{IAM_URL}/.well-known/jwks.json`). Its own keys (`AUTHZ_POLICY_PATH` for the static member) are its own business; any secret among them is a file, `mount: file`, named `…_FILE` (be-protocol P2.12).
 
 ## Moving assignments between members
 
@@ -96,7 +97,7 @@ Format `authz-export/1` (`schemas/export-record.schema.json`, `examples/export.e
 - **Import** (`POST /api/admin/import[?dry_run=true]`, admin_write) is all or nothing: a record the member cannot hold (a `tuple` for a member without `sharing`, an unknown key or kind) is reported with its line and reason and nothing is written (`400` / `IMPORT_REJECTED`). Importing the same file twice gives the same state.
 - **Revisions across the switch.** The importer's first revision is above the header's `revision`, and it answers `410` for any `after` below the header's revision. A component whose projection is exactly at the export point continues; every other rebuilds from the snapshot. No component changes anything.
 - **Static member.** Importing into `infra/authz-static` writes its policy file instead of a database; an export filtered to `role,user_role,user_dept` is what it can hold.
-- **Steps**: stop admin writes → export → `brickkit add` the new member, `brickkit remove` the old one → point `AUTHZ_URL` at the new member → `make gates` (`authz-capability-scan`) → `dry_run` import → import → run the conformance suite → go live.
+- **Steps**: stop admin writes → export → `brickkit add` the new member, `brickkit remove` the old one → point `AUTHZ_URL` and `AUTHZ_GRPC_URL` in `config/vars.yaml` at the new member (`$endpoint:<new member ID>`, two lines) → `make gates` (`authz-capability-scan`) → `dry_run` import → import → run the conformance suite → go live.
 - `relation_group` records keep their version, so a later sync with an older version is still dropped; the owners' outbox and the stream also hold the syncs for replay.
 
 ## Versioning

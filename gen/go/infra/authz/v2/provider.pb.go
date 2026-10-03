@@ -3,8 +3,9 @@
 // Implemented by every member of the family (infra/authz, infra/authz-static,
 // infra/authz-openfga). It is a system-plane service (foundations 14): it is
 // never routed through the edge, every call carries the metadata be-caller,
-// and a caller reaches it only through the shared address AUTHZ_URL, never
-// through a dependency edge to a member.
+// and a caller reaches it only through the shared address AUTHZ_GRPC_URL (a
+// $endpoint: reference to the member in config/vars.yaml, be-protocol P2.10),
+// never through a dependency edge to a member.
 //
 // Rules for this file:
 // - Additive only within infra.authz.v2 (buf breaking, FILE). A breaking

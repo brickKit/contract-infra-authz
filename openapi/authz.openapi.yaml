@@ -31,7 +31,7 @@ servers:
     variables:
       AUTHZ_URL:
         default: http://infra-authz-3-0-0:8223
-        description: Shared key AUTHZ_URL, the installed member's own service name.
+        description: Shared key AUTHZ_URL, written in config/vars.yaml as $endpoint:<member ID> (be-protocol P2.10); http://<member service name>:<port>, no path.
 
 tags:
   - name: provider
