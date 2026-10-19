@@ -1,0 +1,123 @@
+// The authorization member's system surface (family contract: every authorization member serves it). Only the
+// envelope is protobuf; the security records travel as their canonical JSON bytes (D76), each with its digest beside
+// it, checked against the JSON Schemas of be-protocol (schemas/security/). Rules: the assembly project's security 03
+// and 09a, the component protocol's chapter 08; the member's obligations are in this repository's README.
+syntax = "proto3";
+
+package be.authz.v3;
+
+option go_package = "github.com/brickKit/contract-infra-authz/v3/gen/go/be/authz/v3;authzv3";
+
+// ViewService renews the view shards a component holds (security 03, "授权视图与核验"; protocol P8.9-P8.11).
+service ViewService {
+  // Verify recomputes the caller's view on the primary and answers per shard. Callers: every component, through
+  // its SDK, with its service identity; idempotent.
+  rpc Verify(VerifyRequest) returns (VerifyResponse);
+}
+
+// DefinitionService takes the definitions a component declares (security 09a, "定义：资源、维度、操作与字段").
+service DefinitionService {
+  // Submit is called by every component at start, before it is ready; the same version with the same definitions
+  // is accepted again.
+  rpc Submit(SubmitRequest) returns (SubmitResponse);
+}
+
+// RevisionRef is security 09a's RevisionRef.
+message RevisionRef {
+  string domain = 1;
+  string value = 2;
+  // Empty when the domain has no epoch.
+  string epoch = 3;
+  // Empty when the allocator cannot be replaced.
+  string instance = 4;
+}
+
+// HeldShard names a shard the component holds and the digest of the bytes it received for it.
+message HeldShard {
+  string shard = 1;
+  string digest = 2;
+}
+
+message VerifyRequest {
+  // The caller's component ID; the member checks it against the caller's certificate (P8.6).
+  string component = 1;
+  repeated HeldShard held = 2;
+  // At least 128 random bits in lowercase hexadecimal; the answer carries it back.
+  string nonce = 3;
+}
+
+// ShardStatus is a shard's state in an answer.
+enum ShardStatus {
+  SHARD_STATUS_UNSPECIFIED = 0;
+  // The held digest is still the current view.
+  SHARD_STATUS_UNCHANGED = 1;
+  // A new view is attached.
+  SHARD_STATUS_CHANGED = 2;
+  // The shard cannot be renewed for now (a closed scope, facts not yet complete): it runs out on its own.
+  SHARD_STATUS_CLOSED = 3;
+}
+
+message ShardAnswer {
+  string shard = 1;
+  ShardStatus status = 2;
+  // SHARD_STATUS_CHANGED: the canonical bytes of a be.security.view record, without its digest.
+  bytes view = 3;
+  // SHARD_STATUS_CHANGED: the digest of view (P8.8, record type be.security.view, major 1).
+  string digest = 4;
+}
+
+message VerifyResponse {
+  // Equal to the request's; an answer with another nonce is discarded.
+  string nonce = 1;
+  // For audit only (Instant); components never derive validity from it.
+  string computed_at = 2;
+  // The answering member instance (security 09a).
+  string instance = 3;
+  // Domain authz.recovery.
+  RevisionRef recovery_generation = 4;
+  repeated ShardAnswer shards = 5;
+}
+
+// Definition is one definition record: the canonical bytes of a be.security.resource_definition or
+// be.security.operation_definition, without its digest.
+message Definition {
+  bytes record = 1;
+  // P8.8, with the record type the bytes declare, major 1.
+  string digest = 2;
+}
+
+message SubmitRequest {
+  // The submitting component's ID; it must equal the caller's certificate and every definition's authority.
+  string component = 1;
+  // The component's exact version.
+  string version = 2;
+  // Everything the component declares in this version: resources (with their dimensions, fields and attachment
+  // categories) and operations.
+  repeated Definition definitions = 3;
+}
+
+// SubmitStatus is the outcome of a submission as a whole.
+enum SubmitStatus {
+  SUBMIT_STATUS_UNSPECIFIED = 0;
+  SUBMIT_STATUS_ACCEPTED = 1;
+  SUBMIT_STATUS_REJECTED = 2;
+}
+
+// Rejection says why one definition, or the submission, was refused.
+message Rejection {
+  // The definition's digest; empty when the reason concerns the whole submission.
+  string digest = 1;
+  // An error reason of security 09a (for example DEFINITION_OWNER_MISMATCH).
+  string reason = 2;
+  // A short text for people; never parsed.
+  string detail = 3;
+}
+
+message SubmitResponse {
+  SubmitStatus status = 1;
+  // SUBMIT_STATUS_ACCEPTED: the digest of the accepted set (record type be.security.definition_set: the component,
+  // the version and the set of the definitions' digests).
+  string set_digest = 2;
+  // SUBMIT_STATUS_REJECTED: every reason found, not only the first.
+  repeated Rejection rejections = 3;
+}
