@@ -64,6 +64,9 @@ message ShardAnswer {
   bytes view = 3;
   // SHARD_STATUS_CHANGED: the digest of view (P8.8, record type be.security.view, major 1).
   string digest = 4;
+  // UNCHANGED or CHANGED renewed for ordinary reads only (a source watermark between D_src_high and D_src_read):
+  // the high-risk validity does not move (P8.11).
+  bool read_only = 5;
 }
 
 message VerifyResponse {

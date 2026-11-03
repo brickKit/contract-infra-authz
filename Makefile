@@ -22,5 +22,6 @@ gen-check:  ## the committed code is exactly what buf generates from proto/
 build:  ## the Go module builds and vets
 	go vet ./... && go build ./... && test -z "$$(gofmt -l .)"
 
-breaking:  ## additive only against a release: make breaking BASE=v3.0.0-alpha.1
-	$(RUN) $(BUF) breaking --against '.git#tag=$(BASE)'
+breaking:  ## additive only against a release: make breaking BASE=v3.0.0-alpha.1 (works in a submodule checkout too)
+	@T=$$(mktemp -d) && git archive $(BASE) | tar -x -C $$T && \
+	  $(RUN) -v $$T:/base $(BUF) breaking --against /base; s=$$?; rm -rf $$T; exit $$s

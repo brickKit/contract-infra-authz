@@ -58,16 +58,18 @@ class VerifyRequest(_message.Message):
     def __init__(self, component: _Optional[str] = ..., held: _Optional[_Iterable[_Union[HeldShard, _Mapping]]] = ..., nonce: _Optional[str] = ...) -> None: ...
 
 class ShardAnswer(_message.Message):
-    __slots__ = ("shard", "status", "view", "digest")
+    __slots__ = ("shard", "status", "view", "digest", "read_only")
     SHARD_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
     VIEW_FIELD_NUMBER: _ClassVar[int]
     DIGEST_FIELD_NUMBER: _ClassVar[int]
+    READ_ONLY_FIELD_NUMBER: _ClassVar[int]
     shard: str
     status: ShardStatus
     view: bytes
     digest: str
-    def __init__(self, shard: _Optional[str] = ..., status: _Optional[_Union[ShardStatus, str]] = ..., view: _Optional[bytes] = ..., digest: _Optional[str] = ...) -> None: ...
+    read_only: bool
+    def __init__(self, shard: _Optional[str] = ..., status: _Optional[_Union[ShardStatus, str]] = ..., view: _Optional[bytes] = ..., digest: _Optional[str] = ..., read_only: _Optional[bool] = ...) -> None: ...
 
 class VerifyResponse(_message.Message):
     __slots__ = ("nonce", "computed_at", "instance", "recovery_generation", "shards")

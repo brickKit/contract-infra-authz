@@ -53,8 +53,8 @@
 
 ## 引用
 
-- Go：`go get github.com/brickKit/contract-infra-authz/v3@v3.0.0-alpha.1`，导入 `github.com/brickKit/contract-infra-authz/v3/gen/go/be/authz/v3`。
-- Python（uv）：`contract-infra-authz = { git = "https://github.com/brickKit/contract-infra-authz", tag = "v3.0.0-alpha.1", subdirectory = "python" }`。
+- Go：`go get github.com/brickKit/contract-infra-authz/v3@v3.0.0-alpha.2`，导入 `github.com/brickKit/contract-infra-authz/v3/gen/go/be/authz/v3`。
+- Python（uv）：`contract-infra-authz = { git = "https://github.com/brickKit/contract-infra-authz", tag = "v3.0.0-alpha.2", subdirectory = "python" }`。
 
 运行时的版本：生成代码要求 `google.golang.org/protobuf` v1.36.12 与 grpc-go v1.83.2 起，Python 要求 `protobuf` 7.36.2、`grpcio` 1.84.0 起，与 SDK 锁定的版本一致。
 

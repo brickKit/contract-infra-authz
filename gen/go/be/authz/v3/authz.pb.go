@@ -325,7 +325,10 @@ type ShardAnswer struct {
 	// SHARD_STATUS_CHANGED: the canonical bytes of a be.security.view record, without its digest.
 	View []byte `protobuf:"bytes,3,opt,name=view,proto3" json:"view,omitempty"`
 	// SHARD_STATUS_CHANGED: the digest of view (P8.8, record type be.security.view, major 1).
-	Digest        string `protobuf:"bytes,4,opt,name=digest,proto3" json:"digest,omitempty"`
+	Digest string `protobuf:"bytes,4,opt,name=digest,proto3" json:"digest,omitempty"`
+	// UNCHANGED or CHANGED renewed for ordinary reads only (a source watermark between D_src_high and D_src_read):
+	// the high-risk validity does not move (P8.11).
+	ReadOnly      bool `protobuf:"varint,5,opt,name=read_only,json=readOnly,proto3" json:"read_only,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -386,6 +389,13 @@ func (x *ShardAnswer) GetDigest() string {
 		return x.Digest
 	}
 	return ""
+}
+
+func (x *ShardAnswer) GetReadOnly() bool {
+	if x != nil {
+		return x.ReadOnly
+	}
+	return false
 }
 
 type VerifyResponse struct {
@@ -730,12 +740,13 @@ const file_be_authz_v3_authz_proto_rawDesc = "" +
 	"\rVerifyRequest\x12\x1c\n" +
 	"\tcomponent\x18\x01 \x01(\tR\tcomponent\x12*\n" +
 	"\x04held\x18\x02 \x03(\v2\x16.be.authz.v3.HeldShardR\x04held\x12\x14\n" +
-	"\x05nonce\x18\x03 \x01(\tR\x05nonce\"\x81\x01\n" +
+	"\x05nonce\x18\x03 \x01(\tR\x05nonce\"\x9e\x01\n" +
 	"\vShardAnswer\x12\x14\n" +
 	"\x05shard\x18\x01 \x01(\tR\x05shard\x120\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x18.be.authz.v3.ShardStatusR\x06status\x12\x12\n" +
 	"\x04view\x18\x03 \x01(\fR\x04view\x12\x16\n" +
-	"\x06digest\x18\x04 \x01(\tR\x06digest\"\xe0\x01\n" +
+	"\x06digest\x18\x04 \x01(\tR\x06digest\x12\x1b\n" +
+	"\tread_only\x18\x05 \x01(\bR\breadOnly\"\xe0\x01\n" +
 	"\x0eVerifyResponse\x12\x14\n" +
 	"\x05nonce\x18\x01 \x01(\tR\x05nonce\x12\x1f\n" +
 	"\vcomputed_at\x18\x02 \x01(\tR\n" +
