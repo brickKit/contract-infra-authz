@@ -19,6 +19,13 @@ class SubmitStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     SUBMIT_STATUS_UNSPECIFIED: _ClassVar[SubmitStatus]
     SUBMIT_STATUS_ACCEPTED: _ClassVar[SubmitStatus]
     SUBMIT_STATUS_REJECTED: _ClassVar[SubmitStatus]
+
+class AccountChangeVerdict(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    ACCOUNT_CHANGE_VERDICT_UNSPECIFIED: _ClassVar[AccountChangeVerdict]
+    ACCOUNT_CHANGE_VERDICT_ALLOWED: _ClassVar[AccountChangeVerdict]
+    ACCOUNT_CHANGE_VERDICT_CONFIRMATION_REQUIRED: _ClassVar[AccountChangeVerdict]
+    ACCOUNT_CHANGE_VERDICT_REFUSED: _ClassVar[AccountChangeVerdict]
 SHARD_STATUS_UNSPECIFIED: ShardStatus
 SHARD_STATUS_UNCHANGED: ShardStatus
 SHARD_STATUS_CHANGED: ShardStatus
@@ -26,6 +33,10 @@ SHARD_STATUS_CLOSED: ShardStatus
 SUBMIT_STATUS_UNSPECIFIED: SubmitStatus
 SUBMIT_STATUS_ACCEPTED: SubmitStatus
 SUBMIT_STATUS_REJECTED: SubmitStatus
+ACCOUNT_CHANGE_VERDICT_UNSPECIFIED: AccountChangeVerdict
+ACCOUNT_CHANGE_VERDICT_ALLOWED: AccountChangeVerdict
+ACCOUNT_CHANGE_VERDICT_CONFIRMATION_REQUIRED: AccountChangeVerdict
+ACCOUNT_CHANGE_VERDICT_REFUSED: AccountChangeVerdict
 
 class RevisionRef(_message.Message):
     __slots__ = ("domain", "value", "epoch", "instance")
@@ -122,3 +133,29 @@ class SubmitResponse(_message.Message):
     set_digest: str
     rejections: _containers.RepeatedCompositeFieldContainer[Rejection]
     def __init__(self, status: _Optional[_Union[SubmitStatus, str]] = ..., set_digest: _Optional[str] = ..., rejections: _Optional[_Iterable[_Union[Rejection, _Mapping]]] = ...) -> None: ...
+
+class CheckAccountChangeRequest(_message.Message):
+    __slots__ = ("account", "target_state", "security_version", "requester", "confirmation", "second_person")
+    ACCOUNT_FIELD_NUMBER: _ClassVar[int]
+    TARGET_STATE_FIELD_NUMBER: _ClassVar[int]
+    SECURITY_VERSION_FIELD_NUMBER: _ClassVar[int]
+    REQUESTER_FIELD_NUMBER: _ClassVar[int]
+    CONFIRMATION_FIELD_NUMBER: _ClassVar[int]
+    SECOND_PERSON_FIELD_NUMBER: _ClassVar[int]
+    account: str
+    target_state: str
+    security_version: int
+    requester: str
+    confirmation: str
+    second_person: bool
+    def __init__(self, account: _Optional[str] = ..., target_state: _Optional[str] = ..., security_version: _Optional[int] = ..., requester: _Optional[str] = ..., confirmation: _Optional[str] = ..., second_person: _Optional[bool] = ...) -> None: ...
+
+class CheckAccountChangeResponse(_message.Message):
+    __slots__ = ("verdict", "reason", "administrator")
+    VERDICT_FIELD_NUMBER: _ClassVar[int]
+    REASON_FIELD_NUMBER: _ClassVar[int]
+    ADMINISTRATOR_FIELD_NUMBER: _ClassVar[int]
+    verdict: AccountChangeVerdict
+    reason: str
+    administrator: bool
+    def __init__(self, verdict: _Optional[_Union[AccountChangeVerdict, str]] = ..., reason: _Optional[str] = ..., administrator: _Optional[bool] = ...) -> None: ...

@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17\x62\x65/authz/v3/authz.proto\x12\x0b\x62\x65.authz.v3\"m\n\x0bRevisionRef\x12\x16\n\x06\x64omain\x18\x01 \x01(\tR\x06\x64omain\x12\x14\n\x05value\x18\x02 \x01(\tR\x05value\x12\x14\n\x05\x65poch\x18\x03 \x01(\tR\x05\x65poch\x12\x1a\n\x08instance\x18\x04 \x01(\tR\x08instance\"9\n\tHeldShard\x12\x14\n\x05shard\x18\x01 \x01(\tR\x05shard\x12\x16\n\x06\x64igest\x18\x02 \x01(\tR\x06\x64igest\"o\n\rVerifyRequest\x12\x1c\n\tcomponent\x18\x01 \x01(\tR\tcomponent\x12*\n\x04held\x18\x02 \x03(\x0b\x32\x16.be.authz.v3.HeldShardR\x04held\x12\x14\n\x05nonce\x18\x03 \x01(\tR\x05nonce\"\x9e\x01\n\x0bShardAnswer\x12\x14\n\x05shard\x18\x01 \x01(\tR\x05shard\x12\x30\n\x06status\x18\x02 \x01(\x0e\x32\x18.be.authz.v3.ShardStatusR\x06status\x12\x12\n\x04view\x18\x03 \x01(\x0cR\x04view\x12\x16\n\x06\x64igest\x18\x04 \x01(\tR\x06\x64igest\x12\x1b\n\tread_only\x18\x05 \x01(\x08R\x08readOnly\"\xe0\x01\n\x0eVerifyResponse\x12\x14\n\x05nonce\x18\x01 \x01(\tR\x05nonce\x12\x1f\n\x0b\x63omputed_at\x18\x02 \x01(\tR\ncomputedAt\x12\x1a\n\x08instance\x18\x03 \x01(\tR\x08instance\x12I\n\x13recovery_generation\x18\x04 \x01(\x0b\x32\x18.be.authz.v3.RevisionRefR\x12recoveryGeneration\x12\x30\n\x06shards\x18\x05 \x03(\x0b\x32\x18.be.authz.v3.ShardAnswerR\x06shards\"<\n\nDefinition\x12\x16\n\x06record\x18\x01 \x01(\x0cR\x06record\x12\x16\n\x06\x64igest\x18\x02 \x01(\tR\x06\x64igest\"\x82\x01\n\rSubmitRequest\x12\x1c\n\tcomponent\x18\x01 \x01(\tR\tcomponent\x12\x18\n\x07version\x18\x02 \x01(\tR\x07version\x12\x39\n\x0b\x64\x65\x66initions\x18\x03 \x03(\x0b\x32\x17.be.authz.v3.DefinitionR\x0b\x64\x65\x66initions\"S\n\tRejection\x12\x16\n\x06\x64igest\x18\x01 \x01(\tR\x06\x64igest\x12\x16\n\x06reason\x18\x02 \x01(\tR\x06reason\x12\x16\n\x06\x64\x65tail\x18\x03 \x01(\tR\x06\x64\x65tail\"\x9a\x01\n\x0eSubmitResponse\x12\x31\n\x06status\x18\x01 \x01(\x0e\x32\x19.be.authz.v3.SubmitStatusR\x06status\x12\x1d\n\nset_digest\x18\x02 \x01(\tR\tsetDigest\x12\x36\n\nrejections\x18\x03 \x03(\x0b\x32\x16.be.authz.v3.RejectionR\nrejections*z\n\x0bShardStatus\x12\x1c\n\x18SHARD_STATUS_UNSPECIFIED\x10\x00\x12\x1a\n\x16SHARD_STATUS_UNCHANGED\x10\x01\x12\x18\n\x14SHARD_STATUS_CHANGED\x10\x02\x12\x17\n\x13SHARD_STATUS_CLOSED\x10\x03*e\n\x0cSubmitStatus\x12\x1d\n\x19SUBMIT_STATUS_UNSPECIFIED\x10\x00\x12\x1a\n\x16SUBMIT_STATUS_ACCEPTED\x10\x01\x12\x1a\n\x16SUBMIT_STATUS_REJECTED\x10\x02\x32P\n\x0bViewService\x12\x41\n\x06Verify\x12\x1a.be.authz.v3.VerifyRequest\x1a\x1b.be.authz.v3.VerifyResponse2V\n\x11\x44\x65\x66initionService\x12\x41\n\x06Submit\x12\x1a.be.authz.v3.SubmitRequest\x1a\x1b.be.authz.v3.SubmitResponseBHZFgithub.com/brickKit/contract-infra-authz/v3/gen/go/be/authz/v3;authzv3b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17\x62\x65/authz/v3/authz.proto\x12\x0b\x62\x65.authz.v3\"m\n\x0bRevisionRef\x12\x16\n\x06\x64omain\x18\x01 \x01(\tR\x06\x64omain\x12\x14\n\x05value\x18\x02 \x01(\tR\x05value\x12\x14\n\x05\x65poch\x18\x03 \x01(\tR\x05\x65poch\x12\x1a\n\x08instance\x18\x04 \x01(\tR\x08instance\"9\n\tHeldShard\x12\x14\n\x05shard\x18\x01 \x01(\tR\x05shard\x12\x16\n\x06\x64igest\x18\x02 \x01(\tR\x06\x64igest\"o\n\rVerifyRequest\x12\x1c\n\tcomponent\x18\x01 \x01(\tR\tcomponent\x12*\n\x04held\x18\x02 \x03(\x0b\x32\x16.be.authz.v3.HeldShardR\x04held\x12\x14\n\x05nonce\x18\x03 \x01(\tR\x05nonce\"\x9e\x01\n\x0bShardAnswer\x12\x14\n\x05shard\x18\x01 \x01(\tR\x05shard\x12\x30\n\x06status\x18\x02 \x01(\x0e\x32\x18.be.authz.v3.ShardStatusR\x06status\x12\x12\n\x04view\x18\x03 \x01(\x0cR\x04view\x12\x16\n\x06\x64igest\x18\x04 \x01(\tR\x06\x64igest\x12\x1b\n\tread_only\x18\x05 \x01(\x08R\x08readOnly\"\xe0\x01\n\x0eVerifyResponse\x12\x14\n\x05nonce\x18\x01 \x01(\tR\x05nonce\x12\x1f\n\x0b\x63omputed_at\x18\x02 \x01(\tR\ncomputedAt\x12\x1a\n\x08instance\x18\x03 \x01(\tR\x08instance\x12I\n\x13recovery_generation\x18\x04 \x01(\x0b\x32\x18.be.authz.v3.RevisionRefR\x12recoveryGeneration\x12\x30\n\x06shards\x18\x05 \x03(\x0b\x32\x18.be.authz.v3.ShardAnswerR\x06shards\"<\n\nDefinition\x12\x16\n\x06record\x18\x01 \x01(\x0cR\x06record\x12\x16\n\x06\x64igest\x18\x02 \x01(\tR\x06\x64igest\"\x82\x01\n\rSubmitRequest\x12\x1c\n\tcomponent\x18\x01 \x01(\tR\tcomponent\x12\x18\n\x07version\x18\x02 \x01(\tR\x07version\x12\x39\n\x0b\x64\x65\x66initions\x18\x03 \x03(\x0b\x32\x17.be.authz.v3.DefinitionR\x0b\x64\x65\x66initions\"S\n\tRejection\x12\x16\n\x06\x64igest\x18\x01 \x01(\tR\x06\x64igest\x12\x16\n\x06reason\x18\x02 \x01(\tR\x06reason\x12\x16\n\x06\x64\x65tail\x18\x03 \x01(\tR\x06\x64\x65tail\"\x9a\x01\n\x0eSubmitResponse\x12\x31\n\x06status\x18\x01 \x01(\x0e\x32\x19.be.authz.v3.SubmitStatusR\x06status\x12\x1d\n\nset_digest\x18\x02 \x01(\tR\tsetDigest\x12\x36\n\nrejections\x18\x03 \x03(\x0b\x32\x16.be.authz.v3.RejectionR\nrejections\"\xea\x01\n\x19\x43heckAccountChangeRequest\x12\x18\n\x07\x61\x63\x63ount\x18\x01 \x01(\tR\x07\x61\x63\x63ount\x12!\n\x0ctarget_state\x18\x02 \x01(\tR\x0btargetState\x12)\n\x10security_version\x18\x03 \x01(\x03R\x0fsecurityVersion\x12\x1c\n\trequester\x18\x04 \x01(\tR\trequester\x12\"\n\x0c\x63onfirmation\x18\x05 \x01(\tR\x0c\x63onfirmation\x12#\n\rsecond_person\x18\x06 \x01(\x08R\x0csecondPerson\"\x97\x01\n\x1a\x43heckAccountChangeResponse\x12;\n\x07verdict\x18\x01 \x01(\x0e\x32!.be.authz.v3.AccountChangeVerdictR\x07verdict\x12\x16\n\x06reason\x18\x02 \x01(\tR\x06reason\x12$\n\radministrator\x18\x03 \x01(\x08R\radministrator*z\n\x0bShardStatus\x12\x1c\n\x18SHARD_STATUS_UNSPECIFIED\x10\x00\x12\x1a\n\x16SHARD_STATUS_UNCHANGED\x10\x01\x12\x18\n\x14SHARD_STATUS_CHANGED\x10\x02\x12\x17\n\x13SHARD_STATUS_CLOSED\x10\x03*e\n\x0cSubmitStatus\x12\x1d\n\x19SUBMIT_STATUS_UNSPECIFIED\x10\x00\x12\x1a\n\x16SUBMIT_STATUS_ACCEPTED\x10\x01\x12\x1a\n\x16SUBMIT_STATUS_REJECTED\x10\x02*\xb8\x01\n\x14\x41\x63\x63ountChangeVerdict\x12&\n\"ACCOUNT_CHANGE_VERDICT_UNSPECIFIED\x10\x00\x12\"\n\x1e\x41\x43\x43OUNT_CHANGE_VERDICT_ALLOWED\x10\x01\x12\x30\n,ACCOUNT_CHANGE_VERDICT_CONFIRMATION_REQUIRED\x10\x02\x12\"\n\x1e\x41\x43\x43OUNT_CHANGE_VERDICT_REFUSED\x10\x03\x32P\n\x0bViewService\x12\x41\n\x06Verify\x12\x1a.be.authz.v3.VerifyRequest\x1a\x1b.be.authz.v3.VerifyResponse2V\n\x11\x44\x65\x66initionService\x12\x41\n\x06Submit\x12\x1a.be.authz.v3.SubmitRequest\x1a\x1b.be.authz.v3.SubmitResponse2w\n\x0e\x41\x63\x63ountService\x12\x65\n\x12\x43heckAccountChange\x12&.be.authz.v3.CheckAccountChangeRequest\x1a\'.be.authz.v3.CheckAccountChangeResponseBHZFgithub.com/brickKit/contract-infra-authz/v3/gen/go/be/authz/v3;authzv3b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -32,10 +32,12 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'be.authz.v3.authz_pb2', _gl
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'ZFgithub.com/brickKit/contract-infra-authz/v3/gen/go/be/authz/v3;authzv3'
-  _globals['_SHARDSTATUS']._serialized_start=1148
-  _globals['_SHARDSTATUS']._serialized_end=1270
-  _globals['_SUBMITSTATUS']._serialized_start=1272
-  _globals['_SUBMITSTATUS']._serialized_end=1373
+  _globals['_SHARDSTATUS']._serialized_start=1539
+  _globals['_SHARDSTATUS']._serialized_end=1661
+  _globals['_SUBMITSTATUS']._serialized_start=1663
+  _globals['_SUBMITSTATUS']._serialized_end=1764
+  _globals['_ACCOUNTCHANGEVERDICT']._serialized_start=1767
+  _globals['_ACCOUNTCHANGEVERDICT']._serialized_end=1951
   _globals['_REVISIONREF']._serialized_start=40
   _globals['_REVISIONREF']._serialized_end=149
   _globals['_HELDSHARD']._serialized_start=151
@@ -54,8 +56,14 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_REJECTION']._serialized_end=989
   _globals['_SUBMITRESPONSE']._serialized_start=992
   _globals['_SUBMITRESPONSE']._serialized_end=1146
-  _globals['_VIEWSERVICE']._serialized_start=1375
-  _globals['_VIEWSERVICE']._serialized_end=1455
-  _globals['_DEFINITIONSERVICE']._serialized_start=1457
-  _globals['_DEFINITIONSERVICE']._serialized_end=1543
+  _globals['_CHECKACCOUNTCHANGEREQUEST']._serialized_start=1149
+  _globals['_CHECKACCOUNTCHANGEREQUEST']._serialized_end=1383
+  _globals['_CHECKACCOUNTCHANGERESPONSE']._serialized_start=1386
+  _globals['_CHECKACCOUNTCHANGERESPONSE']._serialized_end=1537
+  _globals['_VIEWSERVICE']._serialized_start=1953
+  _globals['_VIEWSERVICE']._serialized_end=2033
+  _globals['_DEFINITIONSERVICE']._serialized_start=2035
+  _globals['_DEFINITIONSERVICE']._serialized_end=2121
+  _globals['_ACCOUNTSERVICE']._serialized_start=2123
+  _globals['_ACCOUNTSERVICE']._serialized_end=2242
 # @@protoc_insertion_point(module_scope)

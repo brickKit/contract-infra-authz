@@ -132,6 +132,62 @@ func (SubmitStatus) EnumDescriptor() ([]byte, []int) {
 	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{1}
 }
 
+type AccountChangeVerdict int32
+
+const (
+	AccountChangeVerdict_ACCOUNT_CHANGE_VERDICT_UNSPECIFIED AccountChangeVerdict = 0
+	// No confirmation is needed, or the one given holds.
+	AccountChangeVerdict_ACCOUNT_CHANGE_VERDICT_ALLOWED AccountChangeVerdict = 1
+	// A confirmation is needed and none was given.
+	AccountChangeVerdict_ACCOUNT_CHANGE_VERDICT_CONFIRMATION_REQUIRED AccountChangeVerdict = 2
+	// The confirmation given does not hold (used, expired, another object, the requester's own or the account's own,
+	// a confirmer not qualified now), or this change cannot be made now.
+	AccountChangeVerdict_ACCOUNT_CHANGE_VERDICT_REFUSED AccountChangeVerdict = 3
+)
+
+// Enum value maps for AccountChangeVerdict.
+var (
+	AccountChangeVerdict_name = map[int32]string{
+		0: "ACCOUNT_CHANGE_VERDICT_UNSPECIFIED",
+		1: "ACCOUNT_CHANGE_VERDICT_ALLOWED",
+		2: "ACCOUNT_CHANGE_VERDICT_CONFIRMATION_REQUIRED",
+		3: "ACCOUNT_CHANGE_VERDICT_REFUSED",
+	}
+	AccountChangeVerdict_value = map[string]int32{
+		"ACCOUNT_CHANGE_VERDICT_UNSPECIFIED":           0,
+		"ACCOUNT_CHANGE_VERDICT_ALLOWED":               1,
+		"ACCOUNT_CHANGE_VERDICT_CONFIRMATION_REQUIRED": 2,
+		"ACCOUNT_CHANGE_VERDICT_REFUSED":               3,
+	}
+)
+
+func (x AccountChangeVerdict) Enum() *AccountChangeVerdict {
+	p := new(AccountChangeVerdict)
+	*p = x
+	return p
+}
+
+func (x AccountChangeVerdict) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AccountChangeVerdict) Descriptor() protoreflect.EnumDescriptor {
+	return file_be_authz_v3_authz_proto_enumTypes[2].Descriptor()
+}
+
+func (AccountChangeVerdict) Type() protoreflect.EnumType {
+	return &file_be_authz_v3_authz_proto_enumTypes[2]
+}
+
+func (x AccountChangeVerdict) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AccountChangeVerdict.Descriptor instead.
+func (AccountChangeVerdict) EnumDescriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{2}
+}
+
 // RevisionRef is security 09a's RevisionRef.
 type RevisionRef struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
@@ -724,6 +780,161 @@ func (x *SubmitResponse) GetRejections() []*Rejection {
 	return nil
 }
 
+type CheckAccountChangeRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The account's platform principal.
+	Account string `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
+	// The status it would take: active, disabled or security_frozen (security 09a's account_status).
+	TargetState string `protobuf:"bytes,2,opt,name=target_state,json=targetState,proto3" json:"target_state,omitempty"`
+	// The account's security version the change is made on.
+	SecurityVersion int64 `protobuf:"varint,3,opt,name=security_version,json=securityVersion,proto3" json:"security_version,omitempty"`
+	// Who asks the identity member for the change (the platform principal).
+	Requester string `protobuf:"bytes,4,opt,name=requester,proto3" json:"requester,omitempty"`
+	// A confirmation's ID (be.security.confirmation, its target the account, target_state and target_state_version
+	// this change), or empty.
+	Confirmation string `protobuf:"bytes,5,opt,name=confirmation,proto3" json:"confirmation,omitempty"`
+	// The identity member's own rule asks for a second person: the requester was admitted on a view whose source has
+	// been stale beyond T_tight (security 03, protocol P8.29).
+	SecondPerson  bool `protobuf:"varint,6,opt,name=second_person,json=secondPerson,proto3" json:"second_person,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckAccountChangeRequest) Reset() {
+	*x = CheckAccountChangeRequest{}
+	mi := &file_be_authz_v3_authz_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckAccountChangeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckAccountChangeRequest) ProtoMessage() {}
+
+func (x *CheckAccountChangeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_be_authz_v3_authz_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckAccountChangeRequest.ProtoReflect.Descriptor instead.
+func (*CheckAccountChangeRequest) Descriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CheckAccountChangeRequest) GetAccount() string {
+	if x != nil {
+		return x.Account
+	}
+	return ""
+}
+
+func (x *CheckAccountChangeRequest) GetTargetState() string {
+	if x != nil {
+		return x.TargetState
+	}
+	return ""
+}
+
+func (x *CheckAccountChangeRequest) GetSecurityVersion() int64 {
+	if x != nil {
+		return x.SecurityVersion
+	}
+	return 0
+}
+
+func (x *CheckAccountChangeRequest) GetRequester() string {
+	if x != nil {
+		return x.Requester
+	}
+	return ""
+}
+
+func (x *CheckAccountChangeRequest) GetConfirmation() string {
+	if x != nil {
+		return x.Confirmation
+	}
+	return ""
+}
+
+func (x *CheckAccountChangeRequest) GetSecondPerson() bool {
+	if x != nil {
+		return x.SecondPerson
+	}
+	return false
+}
+
+type CheckAccountChangeResponse struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Verdict AccountChangeVerdict   `protobuf:"varint,1,opt,name=verdict,proto3,enum=be.authz.v3.AccountChangeVerdict" json:"verdict,omitempty"`
+	// Why a confirmation is required (protected: the account holds the authorization admin role; second_person) or
+	// why the change is refused; for people and logs, never parsed.
+	Reason string `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	// The account holds the authorization admin role (a disablement of it alerts as security 08 says).
+	Administrator bool `protobuf:"varint,3,opt,name=administrator,proto3" json:"administrator,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckAccountChangeResponse) Reset() {
+	*x = CheckAccountChangeResponse{}
+	mi := &file_be_authz_v3_authz_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckAccountChangeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckAccountChangeResponse) ProtoMessage() {}
+
+func (x *CheckAccountChangeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_be_authz_v3_authz_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckAccountChangeResponse.ProtoReflect.Descriptor instead.
+func (*CheckAccountChangeResponse) Descriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *CheckAccountChangeResponse) GetVerdict() AccountChangeVerdict {
+	if x != nil {
+		return x.Verdict
+	}
+	return AccountChangeVerdict_ACCOUNT_CHANGE_VERDICT_UNSPECIFIED
+}
+
+func (x *CheckAccountChangeResponse) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *CheckAccountChangeResponse) GetAdministrator() bool {
+	if x != nil {
+		return x.Administrator
+	}
+	return false
+}
+
 var File_be_authz_v3_authz_proto protoreflect.FileDescriptor
 
 const file_be_authz_v3_authz_proto_rawDesc = "" +
@@ -772,7 +983,18 @@ const file_be_authz_v3_authz_proto_rawDesc = "" +
 	"set_digest\x18\x02 \x01(\tR\tsetDigest\x126\n" +
 	"\n" +
 	"rejections\x18\x03 \x03(\v2\x16.be.authz.v3.RejectionR\n" +
-	"rejections*z\n" +
+	"rejections\"\xea\x01\n" +
+	"\x19CheckAccountChangeRequest\x12\x18\n" +
+	"\aaccount\x18\x01 \x01(\tR\aaccount\x12!\n" +
+	"\ftarget_state\x18\x02 \x01(\tR\vtargetState\x12)\n" +
+	"\x10security_version\x18\x03 \x01(\x03R\x0fsecurityVersion\x12\x1c\n" +
+	"\trequester\x18\x04 \x01(\tR\trequester\x12\"\n" +
+	"\fconfirmation\x18\x05 \x01(\tR\fconfirmation\x12#\n" +
+	"\rsecond_person\x18\x06 \x01(\bR\fsecondPerson\"\x97\x01\n" +
+	"\x1aCheckAccountChangeResponse\x12;\n" +
+	"\averdict\x18\x01 \x01(\x0e2!.be.authz.v3.AccountChangeVerdictR\averdict\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\x12$\n" +
+	"\radministrator\x18\x03 \x01(\bR\radministrator*z\n" +
 	"\vShardStatus\x12\x1c\n" +
 	"\x18SHARD_STATUS_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16SHARD_STATUS_UNCHANGED\x10\x01\x12\x18\n" +
@@ -781,11 +1003,18 @@ const file_be_authz_v3_authz_proto_rawDesc = "" +
 	"\fSubmitStatus\x12\x1d\n" +
 	"\x19SUBMIT_STATUS_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16SUBMIT_STATUS_ACCEPTED\x10\x01\x12\x1a\n" +
-	"\x16SUBMIT_STATUS_REJECTED\x10\x022P\n" +
+	"\x16SUBMIT_STATUS_REJECTED\x10\x02*\xb8\x01\n" +
+	"\x14AccountChangeVerdict\x12&\n" +
+	"\"ACCOUNT_CHANGE_VERDICT_UNSPECIFIED\x10\x00\x12\"\n" +
+	"\x1eACCOUNT_CHANGE_VERDICT_ALLOWED\x10\x01\x120\n" +
+	",ACCOUNT_CHANGE_VERDICT_CONFIRMATION_REQUIRED\x10\x02\x12\"\n" +
+	"\x1eACCOUNT_CHANGE_VERDICT_REFUSED\x10\x032P\n" +
 	"\vViewService\x12A\n" +
 	"\x06Verify\x12\x1a.be.authz.v3.VerifyRequest\x1a\x1b.be.authz.v3.VerifyResponse2V\n" +
 	"\x11DefinitionService\x12A\n" +
-	"\x06Submit\x12\x1a.be.authz.v3.SubmitRequest\x1a\x1b.be.authz.v3.SubmitResponseBHZFgithub.com/brickKit/contract-infra-authz/v3/gen/go/be/authz/v3;authzv3b\x06proto3"
+	"\x06Submit\x12\x1a.be.authz.v3.SubmitRequest\x1a\x1b.be.authz.v3.SubmitResponse2w\n" +
+	"\x0eAccountService\x12e\n" +
+	"\x12CheckAccountChange\x12&.be.authz.v3.CheckAccountChangeRequest\x1a'.be.authz.v3.CheckAccountChangeResponseBHZFgithub.com/brickKit/contract-infra-authz/v3/gen/go/be/authz/v3;authzv3b\x06proto3"
 
 var (
 	file_be_authz_v3_authz_proto_rawDescOnce sync.Once
@@ -799,38 +1028,44 @@ func file_be_authz_v3_authz_proto_rawDescGZIP() []byte {
 	return file_be_authz_v3_authz_proto_rawDescData
 }
 
-var file_be_authz_v3_authz_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_be_authz_v3_authz_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_be_authz_v3_authz_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_be_authz_v3_authz_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_be_authz_v3_authz_proto_goTypes = []any{
-	(ShardStatus)(0),       // 0: be.authz.v3.ShardStatus
-	(SubmitStatus)(0),      // 1: be.authz.v3.SubmitStatus
-	(*RevisionRef)(nil),    // 2: be.authz.v3.RevisionRef
-	(*HeldShard)(nil),      // 3: be.authz.v3.HeldShard
-	(*VerifyRequest)(nil),  // 4: be.authz.v3.VerifyRequest
-	(*ShardAnswer)(nil),    // 5: be.authz.v3.ShardAnswer
-	(*VerifyResponse)(nil), // 6: be.authz.v3.VerifyResponse
-	(*Definition)(nil),     // 7: be.authz.v3.Definition
-	(*SubmitRequest)(nil),  // 8: be.authz.v3.SubmitRequest
-	(*Rejection)(nil),      // 9: be.authz.v3.Rejection
-	(*SubmitResponse)(nil), // 10: be.authz.v3.SubmitResponse
+	(ShardStatus)(0),                   // 0: be.authz.v3.ShardStatus
+	(SubmitStatus)(0),                  // 1: be.authz.v3.SubmitStatus
+	(AccountChangeVerdict)(0),          // 2: be.authz.v3.AccountChangeVerdict
+	(*RevisionRef)(nil),                // 3: be.authz.v3.RevisionRef
+	(*HeldShard)(nil),                  // 4: be.authz.v3.HeldShard
+	(*VerifyRequest)(nil),              // 5: be.authz.v3.VerifyRequest
+	(*ShardAnswer)(nil),                // 6: be.authz.v3.ShardAnswer
+	(*VerifyResponse)(nil),             // 7: be.authz.v3.VerifyResponse
+	(*Definition)(nil),                 // 8: be.authz.v3.Definition
+	(*SubmitRequest)(nil),              // 9: be.authz.v3.SubmitRequest
+	(*Rejection)(nil),                  // 10: be.authz.v3.Rejection
+	(*SubmitResponse)(nil),             // 11: be.authz.v3.SubmitResponse
+	(*CheckAccountChangeRequest)(nil),  // 12: be.authz.v3.CheckAccountChangeRequest
+	(*CheckAccountChangeResponse)(nil), // 13: be.authz.v3.CheckAccountChangeResponse
 }
 var file_be_authz_v3_authz_proto_depIdxs = []int32{
-	3,  // 0: be.authz.v3.VerifyRequest.held:type_name -> be.authz.v3.HeldShard
+	4,  // 0: be.authz.v3.VerifyRequest.held:type_name -> be.authz.v3.HeldShard
 	0,  // 1: be.authz.v3.ShardAnswer.status:type_name -> be.authz.v3.ShardStatus
-	2,  // 2: be.authz.v3.VerifyResponse.recovery_generation:type_name -> be.authz.v3.RevisionRef
-	5,  // 3: be.authz.v3.VerifyResponse.shards:type_name -> be.authz.v3.ShardAnswer
-	7,  // 4: be.authz.v3.SubmitRequest.definitions:type_name -> be.authz.v3.Definition
+	3,  // 2: be.authz.v3.VerifyResponse.recovery_generation:type_name -> be.authz.v3.RevisionRef
+	6,  // 3: be.authz.v3.VerifyResponse.shards:type_name -> be.authz.v3.ShardAnswer
+	8,  // 4: be.authz.v3.SubmitRequest.definitions:type_name -> be.authz.v3.Definition
 	1,  // 5: be.authz.v3.SubmitResponse.status:type_name -> be.authz.v3.SubmitStatus
-	9,  // 6: be.authz.v3.SubmitResponse.rejections:type_name -> be.authz.v3.Rejection
-	4,  // 7: be.authz.v3.ViewService.Verify:input_type -> be.authz.v3.VerifyRequest
-	8,  // 8: be.authz.v3.DefinitionService.Submit:input_type -> be.authz.v3.SubmitRequest
-	6,  // 9: be.authz.v3.ViewService.Verify:output_type -> be.authz.v3.VerifyResponse
-	10, // 10: be.authz.v3.DefinitionService.Submit:output_type -> be.authz.v3.SubmitResponse
-	9,  // [9:11] is the sub-list for method output_type
-	7,  // [7:9] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	10, // 6: be.authz.v3.SubmitResponse.rejections:type_name -> be.authz.v3.Rejection
+	2,  // 7: be.authz.v3.CheckAccountChangeResponse.verdict:type_name -> be.authz.v3.AccountChangeVerdict
+	5,  // 8: be.authz.v3.ViewService.Verify:input_type -> be.authz.v3.VerifyRequest
+	9,  // 9: be.authz.v3.DefinitionService.Submit:input_type -> be.authz.v3.SubmitRequest
+	12, // 10: be.authz.v3.AccountService.CheckAccountChange:input_type -> be.authz.v3.CheckAccountChangeRequest
+	7,  // 11: be.authz.v3.ViewService.Verify:output_type -> be.authz.v3.VerifyResponse
+	11, // 12: be.authz.v3.DefinitionService.Submit:output_type -> be.authz.v3.SubmitResponse
+	13, // 13: be.authz.v3.AccountService.CheckAccountChange:output_type -> be.authz.v3.CheckAccountChangeResponse
+	11, // [11:14] is the sub-list for method output_type
+	8,  // [8:11] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_be_authz_v3_authz_proto_init() }
@@ -843,10 +1078,10 @@ func file_be_authz_v3_authz_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_be_authz_v3_authz_proto_rawDesc), len(file_be_authz_v3_authz_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   9,
+			NumEnums:      3,
+			NumMessages:   11,
 			NumExtensions: 0,
-			NumServices:   2,
+			NumServices:   3,
 		},
 		GoTypes:           file_be_authz_v3_authz_proto_goTypes,
 		DependencyIndexes: file_be_authz_v3_authz_proto_depIdxs,

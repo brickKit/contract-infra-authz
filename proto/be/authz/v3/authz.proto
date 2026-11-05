@@ -22,6 +22,15 @@ service DefinitionService {
   rpc Submit(SubmitRequest) returns (SubmitResponse);
 }
 
+// AccountService answers the identity member before it changes an account's status (security 08, "管理员账号的状态变
+// 更"; security 03's two-person rule beyond T_tight).
+service AccountService {
+  // CheckAccountChange says whether a change of an account's status needs a confirmation and whether the one given
+  // holds now; it uses nothing (the confirmation is used when the account status carrying it is applied). Callers:
+  // the identity member only; idempotent.
+  rpc CheckAccountChange(CheckAccountChangeRequest) returns (CheckAccountChangeResponse);
+}
+
 // RevisionRef is security 09a's RevisionRef.
 message RevisionRef {
   string domain = 1;
@@ -123,4 +132,41 @@ message SubmitResponse {
   string set_digest = 2;
   // SUBMIT_STATUS_REJECTED: every reason found, not only the first.
   repeated Rejection rejections = 3;
+}
+
+message CheckAccountChangeRequest {
+  // The account's platform principal.
+  string account = 1;
+  // The status it would take: active, disabled or security_frozen (security 09a's account_status).
+  string target_state = 2;
+  // The account's security version the change is made on.
+  int64 security_version = 3;
+  // Who asks the identity member for the change (the platform principal).
+  string requester = 4;
+  // A confirmation's ID (be.security.confirmation, its target the account, target_state and target_state_version
+  // this change), or empty.
+  string confirmation = 5;
+  // The identity member's own rule asks for a second person: the requester was admitted on a view whose source has
+  // been stale beyond T_tight (security 03, protocol P8.29).
+  bool second_person = 6;
+}
+
+enum AccountChangeVerdict {
+  ACCOUNT_CHANGE_VERDICT_UNSPECIFIED = 0;
+  // No confirmation is needed, or the one given holds.
+  ACCOUNT_CHANGE_VERDICT_ALLOWED = 1;
+  // A confirmation is needed and none was given.
+  ACCOUNT_CHANGE_VERDICT_CONFIRMATION_REQUIRED = 2;
+  // The confirmation given does not hold (used, expired, another object, the requester's own or the account's own,
+  // a confirmer not qualified now), or this change cannot be made now.
+  ACCOUNT_CHANGE_VERDICT_REFUSED = 3;
+}
+
+message CheckAccountChangeResponse {
+  AccountChangeVerdict verdict = 1;
+  // Why a confirmation is required (protected: the account holds the authorization admin role; second_person) or
+  // why the change is refused; for people and logs, never parsed.
+  string reason = 2;
+  // The account holds the authorization admin role (a disablement of it alerts as security 08 says).
+  bool administrator = 3;
 }

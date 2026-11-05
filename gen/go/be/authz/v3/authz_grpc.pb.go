@@ -242,3 +242,117 @@ var DefinitionService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "be/authz/v3/authz.proto",
 }
+
+const (
+	AccountService_CheckAccountChange_FullMethodName = "/be.authz.v3.AccountService/CheckAccountChange"
+)
+
+// AccountServiceClient is the client API for AccountService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// AccountService answers the identity member before it changes an account's status (security 08, "管理员账号的状态变
+// 更"; security 03's two-person rule beyond T_tight).
+type AccountServiceClient interface {
+	// CheckAccountChange says whether a change of an account's status needs a confirmation and whether the one given
+	// holds now; it uses nothing (the confirmation is used when the account status carrying it is applied). Callers:
+	// the identity member only; idempotent.
+	CheckAccountChange(ctx context.Context, in *CheckAccountChangeRequest, opts ...grpc.CallOption) (*CheckAccountChangeResponse, error)
+}
+
+type accountServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewAccountServiceClient(cc grpc.ClientConnInterface) AccountServiceClient {
+	return &accountServiceClient{cc}
+}
+
+func (c *accountServiceClient) CheckAccountChange(ctx context.Context, in *CheckAccountChangeRequest, opts ...grpc.CallOption) (*CheckAccountChangeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckAccountChangeResponse)
+	err := c.cc.Invoke(ctx, AccountService_CheckAccountChange_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AccountServiceServer is the server API for AccountService service.
+// All implementations must embed UnimplementedAccountServiceServer
+// for forward compatibility.
+//
+// AccountService answers the identity member before it changes an account's status (security 08, "管理员账号的状态变
+// 更"; security 03's two-person rule beyond T_tight).
+type AccountServiceServer interface {
+	// CheckAccountChange says whether a change of an account's status needs a confirmation and whether the one given
+	// holds now; it uses nothing (the confirmation is used when the account status carrying it is applied). Callers:
+	// the identity member only; idempotent.
+	CheckAccountChange(context.Context, *CheckAccountChangeRequest) (*CheckAccountChangeResponse, error)
+	mustEmbedUnimplementedAccountServiceServer()
+}
+
+// UnimplementedAccountServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedAccountServiceServer struct{}
+
+func (UnimplementedAccountServiceServer) CheckAccountChange(context.Context, *CheckAccountChangeRequest) (*CheckAccountChangeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckAccountChange not implemented")
+}
+func (UnimplementedAccountServiceServer) mustEmbedUnimplementedAccountServiceServer() {}
+func (UnimplementedAccountServiceServer) testEmbeddedByValue()                        {}
+
+// UnsafeAccountServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to AccountServiceServer will
+// result in compilation errors.
+type UnsafeAccountServiceServer interface {
+	mustEmbedUnimplementedAccountServiceServer()
+}
+
+func RegisterAccountServiceServer(s grpc.ServiceRegistrar, srv AccountServiceServer) {
+	// If the following call panics, it indicates UnimplementedAccountServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&AccountService_ServiceDesc, srv)
+}
+
+func _AccountService_CheckAccountChange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckAccountChangeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServiceServer).CheckAccountChange(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountService_CheckAccountChange_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServiceServer).CheckAccountChange(ctx, req.(*CheckAccountChangeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// AccountService_ServiceDesc is the grpc.ServiceDesc for AccountService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var AccountService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "be.authz.v3.AccountService",
+	HandlerType: (*AccountServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CheckAccountChange",
+			Handler:    _AccountService_CheckAccountChange_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "be/authz/v3/authz.proto",
+}

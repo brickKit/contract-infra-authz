@@ -157,3 +157,84 @@ class DefinitionService:
             timeout,
             metadata,
             _registered_method=True)
+
+
+class AccountServiceStub:
+    """AccountService answers the identity member before it changes an account's status (security 08, "管理员账号的状态变
+    更"; security 03's two-person rule beyond T_tight).
+    """
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.CheckAccountChange = channel.unary_unary(
+                '/be.authz.v3.AccountService/CheckAccountChange',
+                request_serializer=be_dot_authz_dot_v3_dot_authz__pb2.CheckAccountChangeRequest.SerializeToString,
+                response_deserializer=be_dot_authz_dot_v3_dot_authz__pb2.CheckAccountChangeResponse.FromString,
+                _registered_method=True)
+
+
+class AccountServiceServicer:
+    """AccountService answers the identity member before it changes an account's status (security 08, "管理员账号的状态变
+    更"; security 03's two-person rule beyond T_tight).
+    """
+
+    def CheckAccountChange(self, request, context):
+        """CheckAccountChange says whether a change of an account's status needs a confirmation and whether the one given
+        holds now; it uses nothing (the confirmation is used when the account status carrying it is applied). Callers:
+        the identity member only; idempotent.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_AccountServiceServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'CheckAccountChange': grpc.unary_unary_rpc_method_handler(
+                    servicer.CheckAccountChange,
+                    request_deserializer=be_dot_authz_dot_v3_dot_authz__pb2.CheckAccountChangeRequest.FromString,
+                    response_serializer=be_dot_authz_dot_v3_dot_authz__pb2.CheckAccountChangeResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'be.authz.v3.AccountService', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('be.authz.v3.AccountService', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class AccountService:
+    """AccountService answers the identity member before it changes an account's status (security 08, "管理员账号的状态变
+    更"; security 03's two-person rule beyond T_tight).
+    """
+
+    @staticmethod
+    def CheckAccountChange(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/be.authz.v3.AccountService/CheckAccountChange',
+            be_dot_authz_dot_v3_dot_authz__pb2.CheckAccountChangeRequest.SerializeToString,
+            be_dot_authz_dot_v3_dot_authz__pb2.CheckAccountChangeResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
