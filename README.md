@@ -8,7 +8,7 @@
 
 | 位置 | 是什么 |
 | --- | --- |
-| `proto/be/authz/v3/authz.proto` | 三个服务：`ViewService.Verify`（核验视图）、`DefinitionService.Submit`（提交定义）、`AccountService.CheckAccountChange`（账号状态变更前的确认，alpha.3 起） |
+| `proto/be/authz/v3/authz.proto` | 四个服务：`ViewService.Verify`（核验视图）、`DefinitionService.Submit`（提交定义）、`AccountService.CheckAccountChange`（账号状态变更前的确认，alpha.3 起）、`RecoveryService`（整套恢复的 6.4–6.5，alpha.5 起） |
 | `gen/go/be/authz/v3/` | Go 代码，包 `authzv3`（消息与 gRPC 桩），提交在仓库里 |
 | `python/` | Python 包 `contract-infra-authz`，模块 `be.authz.v3`（`authz_pb2`、`authz_pb2_grpc`）；`be` 是各契约包共用的命名空间，没有 `__init__.py` |
 
@@ -60,10 +60,22 @@
 3. **确认是否成立**：确认记录的对象是这个账号，`target_state` 与 `target_state_version` 是这次的状态与账号当前的安全状态版本；没用过、没过期；确认人不是请求者，也不是账号本人；`holding` 的确认人此刻合格（对象不是授权管理员时，两人规则的确认人可按最后已应用的事实判断）；部署所有者的确认在收紧时随时可以，放宽（重新启用、解冻）只在除申请人与对象外没有可用管理员时。成立答 `ALLOWED`，没给答 `CONFIRMATION_REQUIRED`，不成立答 `REFUSED` 并写明原因；确认人的资格此刻证明不了（身份来源停住，管理员账号的确认人要此刻可证明）答 `UNPROVABLE`（alpha.4 起）：什么也不定，身份成员答处理中（`ADMIN_AVAILABILITY_UNPROVABLE`），来源恢复后重试。
 4. **不使用**：这一步只核对；确认在授权成员应用带着它的账号状态（`be.security.account_status` 的 `confirmation`）时才标为已使用，核对不通过的重新启用与解冻使该账号的授权管理持有资格转为待补确认。
 
+### `RecoveryService`（alpha.5 起）
+
+整套恢复第 6 步的 6.4–6.5（装配项目协议 15）。三个方法都只许恢复工具（`ops/recover`）调用，在恢复阶段 `replaying` 中使用。
+
+1. **`Sources`（6.4）**：第一次调用 `since` 为空，成员答 `as_of`（自己主库时钟上的此刻），并请每个水位来源在下一步补取；之后带回这个 `as_of`。每个来源答对齐状态与 `applied`（水位不早于 `as_of`，组件协议 P9.35：来源在这一刻之前提交的已全部应用）；`all_applied` 为真才进 6.5。
+2. **`ReplayDeferred`（6.5）**：执行推迟到 6.5 的“只有意图”的管理员撤销（协议 15 的重放表）。记录身份已在变更历史里答 `reflected`；被撤销的记录不在答 `dangling`；执行之后可用的授权管理员可证明为零的，不执行，被撤销的持有资格转暂停待复核，答 `for_review`；否则执行，答 `applied`。证据记录的核对与 `ReplayService` 相同（记录者是本成员）。
+3. **`Check`（6.5）**：对最终状态检查不变量：
+   - 每条生效或暂停的记录按它的来源重新判断（等于对每个来源跑一遍影响闭包：来源结束或什么都不剩的结束、无法计算的暂停、部分越出上限的标记复核），计数在回答里；账号状态此刻证明不了的列在 `unprovable`，这一次什么都不判，来源应用之后再调用；
+   - `review_subjects` 中按重放后的状态不是授权管理员的，各建一条来源为 `recovery_review` 的安全处置（暂停他的全部段，第 10 步的人复核后解除），是授权管理员的不关闭，列在 `admins_not_closed`；同一主体已有生效中的 `recovery_review` 处置时不再新建；
+   - 最后判可用的授权管理员：可证明为零就进待恢复（安全 08），`admin_state` 答判后的状态；
+   - 职责分离：现在没有可声明的静态互斥角色，这一项为空。
+
 ## 引用
 
-- Go：`go get github.com/brickKit/contract-infra-authz/v3@v3.0.0-alpha.4`，导入 `github.com/brickKit/contract-infra-authz/v3/gen/go/be/authz/v3`。
-- Python（uv）：`contract-infra-authz = { git = "https://github.com/brickKit/contract-infra-authz", tag = "v3.0.0-alpha.4", subdirectory = "python" }`。
+- Go：`go get github.com/brickKit/contract-infra-authz/v3@v3.0.0-alpha.5`，导入 `github.com/brickKit/contract-infra-authz/v3/gen/go/be/authz/v3`。
+- Python（uv）：`contract-infra-authz = { git = "https://github.com/brickKit/contract-infra-authz", tag = "v3.0.0-alpha.5", subdirectory = "python" }`。
 
 运行时的版本：生成代码要求 `google.golang.org/protobuf` v1.36.12 与 grpc-go v1.83.2 起，Python 要求 `protobuf` 7.36.2、`grpcio` 1.84.0 起，与 SDK 锁定的版本一致。
 

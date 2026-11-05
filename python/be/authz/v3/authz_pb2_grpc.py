@@ -238,3 +238,171 @@ class AccountService:
             timeout,
             metadata,
             _registered_method=True)
+
+
+class RecoveryServiceStub:
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.Sources = channel.unary_unary(
+                '/be.authz.v3.RecoveryService/Sources',
+                request_serializer=be_dot_authz_dot_v3_dot_authz__pb2.SourcesRequest.SerializeToString,
+                response_deserializer=be_dot_authz_dot_v3_dot_authz__pb2.SourcesResponse.FromString,
+                _registered_method=True)
+        self.ReplayDeferred = channel.unary_unary(
+                '/be.authz.v3.RecoveryService/ReplayDeferred',
+                request_serializer=be_dot_authz_dot_v3_dot_authz__pb2.ReplayDeferredRequest.SerializeToString,
+                response_deserializer=be_dot_authz_dot_v3_dot_authz__pb2.ReplayDeferredResponse.FromString,
+                _registered_method=True)
+        self.Check = channel.unary_unary(
+                '/be.authz.v3.RecoveryService/Check',
+                request_serializer=be_dot_authz_dot_v3_dot_authz__pb2.CheckRequest.SerializeToString,
+                response_deserializer=be_dot_authz_dot_v3_dot_authz__pb2.CheckResponse.FromString,
+                _registered_method=True)
+
+
+class RecoveryServiceServicer:
+    """Missing associated documentation comment in .proto file."""
+
+    def Sources(self, request, context):
+        """Sources answers whether this member has applied its sources up to a moment (assembly protocol 15, 6.4: the
+        replay of the sources is applied before the invariants are checked). The first call (since empty) answers the
+        moment on this member's primary clock and asks every watermark source for a pull; later calls pass it back.
+        Callers: the recovery tool (ops/recover) only; idempotent.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ReplayDeferred(self, request, context):
+        """ReplayDeferred executes an intent-only revocation that affects the availability of authorization admins, deferred
+        to 6.5: executing it, if no admin is provably available after, it is not executed and the holding it revokes is
+        held for review. Callers: the recovery tool only; idempotent (a record executed already answers reflected).
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Check(self, request, context):
+        """Check runs the invariant check on the final state (6.5): every record judged against its sources as a closure
+        would, the subjects under review closed unless authorization admins, then the deployment's admins judged.
+        Callers: the recovery tool only; repeatable.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_RecoveryServiceServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'Sources': grpc.unary_unary_rpc_method_handler(
+                    servicer.Sources,
+                    request_deserializer=be_dot_authz_dot_v3_dot_authz__pb2.SourcesRequest.FromString,
+                    response_serializer=be_dot_authz_dot_v3_dot_authz__pb2.SourcesResponse.SerializeToString,
+            ),
+            'ReplayDeferred': grpc.unary_unary_rpc_method_handler(
+                    servicer.ReplayDeferred,
+                    request_deserializer=be_dot_authz_dot_v3_dot_authz__pb2.ReplayDeferredRequest.FromString,
+                    response_serializer=be_dot_authz_dot_v3_dot_authz__pb2.ReplayDeferredResponse.SerializeToString,
+            ),
+            'Check': grpc.unary_unary_rpc_method_handler(
+                    servicer.Check,
+                    request_deserializer=be_dot_authz_dot_v3_dot_authz__pb2.CheckRequest.FromString,
+                    response_serializer=be_dot_authz_dot_v3_dot_authz__pb2.CheckResponse.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'be.authz.v3.RecoveryService', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('be.authz.v3.RecoveryService', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class RecoveryService:
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def Sources(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/be.authz.v3.RecoveryService/Sources',
+            be_dot_authz_dot_v3_dot_authz__pb2.SourcesRequest.SerializeToString,
+            be_dot_authz_dot_v3_dot_authz__pb2.SourcesResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ReplayDeferred(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/be.authz.v3.RecoveryService/ReplayDeferred',
+            be_dot_authz_dot_v3_dot_authz__pb2.ReplayDeferredRequest.SerializeToString,
+            be_dot_authz_dot_v3_dot_authz__pb2.ReplayDeferredResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Check(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/be.authz.v3.RecoveryService/Check',
+            be_dot_authz_dot_v3_dot_authz__pb2.CheckRequest.SerializeToString,
+            be_dot_authz_dot_v3_dot_authz__pb2.CheckResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)

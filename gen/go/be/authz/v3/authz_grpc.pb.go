@@ -356,3 +356,201 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "be/authz/v3/authz.proto",
 }
+
+const (
+	RecoveryService_Sources_FullMethodName        = "/be.authz.v3.RecoveryService/Sources"
+	RecoveryService_ReplayDeferred_FullMethodName = "/be.authz.v3.RecoveryService/ReplayDeferred"
+	RecoveryService_Check_FullMethodName          = "/be.authz.v3.RecoveryService/Check"
+)
+
+// RecoveryServiceClient is the client API for RecoveryService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type RecoveryServiceClient interface {
+	// Sources answers whether this member has applied its sources up to a moment (assembly protocol 15, 6.4: the
+	// replay of the sources is applied before the invariants are checked). The first call (since empty) answers the
+	// moment on this member's primary clock and asks every watermark source for a pull; later calls pass it back.
+	// Callers: the recovery tool (ops/recover) only; idempotent.
+	Sources(ctx context.Context, in *SourcesRequest, opts ...grpc.CallOption) (*SourcesResponse, error)
+	// ReplayDeferred executes an intent-only revocation that affects the availability of authorization admins, deferred
+	// to 6.5: executing it, if no admin is provably available after, it is not executed and the holding it revokes is
+	// held for review. Callers: the recovery tool only; idempotent (a record executed already answers reflected).
+	ReplayDeferred(ctx context.Context, in *ReplayDeferredRequest, opts ...grpc.CallOption) (*ReplayDeferredResponse, error)
+	// Check runs the invariant check on the final state (6.5): every record judged against its sources as a closure
+	// would, the subjects under review closed unless authorization admins, then the deployment's admins judged.
+	// Callers: the recovery tool only; repeatable.
+	Check(ctx context.Context, in *CheckRequest, opts ...grpc.CallOption) (*CheckResponse, error)
+}
+
+type recoveryServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewRecoveryServiceClient(cc grpc.ClientConnInterface) RecoveryServiceClient {
+	return &recoveryServiceClient{cc}
+}
+
+func (c *recoveryServiceClient) Sources(ctx context.Context, in *SourcesRequest, opts ...grpc.CallOption) (*SourcesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SourcesResponse)
+	err := c.cc.Invoke(ctx, RecoveryService_Sources_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *recoveryServiceClient) ReplayDeferred(ctx context.Context, in *ReplayDeferredRequest, opts ...grpc.CallOption) (*ReplayDeferredResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReplayDeferredResponse)
+	err := c.cc.Invoke(ctx, RecoveryService_ReplayDeferred_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *recoveryServiceClient) Check(ctx context.Context, in *CheckRequest, opts ...grpc.CallOption) (*CheckResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckResponse)
+	err := c.cc.Invoke(ctx, RecoveryService_Check_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// RecoveryServiceServer is the server API for RecoveryService service.
+// All implementations must embed UnimplementedRecoveryServiceServer
+// for forward compatibility.
+type RecoveryServiceServer interface {
+	// Sources answers whether this member has applied its sources up to a moment (assembly protocol 15, 6.4: the
+	// replay of the sources is applied before the invariants are checked). The first call (since empty) answers the
+	// moment on this member's primary clock and asks every watermark source for a pull; later calls pass it back.
+	// Callers: the recovery tool (ops/recover) only; idempotent.
+	Sources(context.Context, *SourcesRequest) (*SourcesResponse, error)
+	// ReplayDeferred executes an intent-only revocation that affects the availability of authorization admins, deferred
+	// to 6.5: executing it, if no admin is provably available after, it is not executed and the holding it revokes is
+	// held for review. Callers: the recovery tool only; idempotent (a record executed already answers reflected).
+	ReplayDeferred(context.Context, *ReplayDeferredRequest) (*ReplayDeferredResponse, error)
+	// Check runs the invariant check on the final state (6.5): every record judged against its sources as a closure
+	// would, the subjects under review closed unless authorization admins, then the deployment's admins judged.
+	// Callers: the recovery tool only; repeatable.
+	Check(context.Context, *CheckRequest) (*CheckResponse, error)
+	mustEmbedUnimplementedRecoveryServiceServer()
+}
+
+// UnimplementedRecoveryServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedRecoveryServiceServer struct{}
+
+func (UnimplementedRecoveryServiceServer) Sources(context.Context, *SourcesRequest) (*SourcesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Sources not implemented")
+}
+func (UnimplementedRecoveryServiceServer) ReplayDeferred(context.Context, *ReplayDeferredRequest) (*ReplayDeferredResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReplayDeferred not implemented")
+}
+func (UnimplementedRecoveryServiceServer) Check(context.Context, *CheckRequest) (*CheckResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Check not implemented")
+}
+func (UnimplementedRecoveryServiceServer) mustEmbedUnimplementedRecoveryServiceServer() {}
+func (UnimplementedRecoveryServiceServer) testEmbeddedByValue()                         {}
+
+// UnsafeRecoveryServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to RecoveryServiceServer will
+// result in compilation errors.
+type UnsafeRecoveryServiceServer interface {
+	mustEmbedUnimplementedRecoveryServiceServer()
+}
+
+func RegisterRecoveryServiceServer(s grpc.ServiceRegistrar, srv RecoveryServiceServer) {
+	// If the following call panics, it indicates UnimplementedRecoveryServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&RecoveryService_ServiceDesc, srv)
+}
+
+func _RecoveryService_Sources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SourcesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecoveryServiceServer).Sources(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RecoveryService_Sources_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecoveryServiceServer).Sources(ctx, req.(*SourcesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RecoveryService_ReplayDeferred_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReplayDeferredRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecoveryServiceServer).ReplayDeferred(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RecoveryService_ReplayDeferred_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecoveryServiceServer).ReplayDeferred(ctx, req.(*ReplayDeferredRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RecoveryService_Check_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecoveryServiceServer).Check(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RecoveryService_Check_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecoveryServiceServer).Check(ctx, req.(*CheckRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// RecoveryService_ServiceDesc is the grpc.ServiceDesc for RecoveryService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var RecoveryService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "be.authz.v3.RecoveryService",
+	HandlerType: (*RecoveryServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Sources",
+			Handler:    _RecoveryService_Sources_Handler,
+		},
+		{
+			MethodName: "ReplayDeferred",
+			Handler:    _RecoveryService_ReplayDeferred_Handler,
+		},
+		{
+			MethodName: "Check",
+			Handler:    _RecoveryService_Check_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "be/authz/v3/authz.proto",
+}

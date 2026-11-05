@@ -161,3 +161,73 @@ class CheckAccountChangeResponse(_message.Message):
     reason: str
     administrator: bool
     def __init__(self, verdict: _Optional[_Union[AccountChangeVerdict, str]] = ..., reason: _Optional[str] = ..., administrator: _Optional[bool] = ...) -> None: ...
+
+class SourcesRequest(_message.Message):
+    __slots__ = ("since",)
+    SINCE_FIELD_NUMBER: _ClassVar[int]
+    since: str
+    def __init__(self, since: _Optional[str] = ...) -> None: ...
+
+class SourceState(_message.Message):
+    __slots__ = ("component", "stream", "state", "applied")
+    COMPONENT_FIELD_NUMBER: _ClassVar[int]
+    STREAM_FIELD_NUMBER: _ClassVar[int]
+    STATE_FIELD_NUMBER: _ClassVar[int]
+    APPLIED_FIELD_NUMBER: _ClassVar[int]
+    component: str
+    stream: str
+    state: str
+    applied: bool
+    def __init__(self, component: _Optional[str] = ..., stream: _Optional[str] = ..., state: _Optional[str] = ..., applied: _Optional[bool] = ...) -> None: ...
+
+class SourcesResponse(_message.Message):
+    __slots__ = ("as_of", "sources", "all_applied")
+    AS_OF_FIELD_NUMBER: _ClassVar[int]
+    SOURCES_FIELD_NUMBER: _ClassVar[int]
+    ALL_APPLIED_FIELD_NUMBER: _ClassVar[int]
+    as_of: str
+    sources: _containers.RepeatedCompositeFieldContainer[SourceState]
+    all_applied: bool
+    def __init__(self, as_of: _Optional[str] = ..., sources: _Optional[_Iterable[_Union[SourceState, _Mapping]]] = ..., all_applied: _Optional[bool] = ...) -> None: ...
+
+class ReplayDeferredRequest(_message.Message):
+    __slots__ = ("record", "recovery")
+    RECORD_FIELD_NUMBER: _ClassVar[int]
+    RECOVERY_FIELD_NUMBER: _ClassVar[int]
+    record: bytes
+    recovery: str
+    def __init__(self, record: _Optional[bytes] = ..., recovery: _Optional[str] = ...) -> None: ...
+
+class ReplayDeferredResponse(_message.Message):
+    __slots__ = ("outcome", "detail")
+    OUTCOME_FIELD_NUMBER: _ClassVar[int]
+    DETAIL_FIELD_NUMBER: _ClassVar[int]
+    outcome: str
+    detail: str
+    def __init__(self, outcome: _Optional[str] = ..., detail: _Optional[str] = ...) -> None: ...
+
+class CheckRequest(_message.Message):
+    __slots__ = ("recovery", "review_subjects")
+    RECOVERY_FIELD_NUMBER: _ClassVar[int]
+    REVIEW_SUBJECTS_FIELD_NUMBER: _ClassVar[int]
+    recovery: str
+    review_subjects: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, recovery: _Optional[str] = ..., review_subjects: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class CheckResponse(_message.Message):
+    __slots__ = ("admin_state", "ended", "held", "review", "closed", "admins_not_closed", "unprovable")
+    ADMIN_STATE_FIELD_NUMBER: _ClassVar[int]
+    ENDED_FIELD_NUMBER: _ClassVar[int]
+    HELD_FIELD_NUMBER: _ClassVar[int]
+    REVIEW_FIELD_NUMBER: _ClassVar[int]
+    CLOSED_FIELD_NUMBER: _ClassVar[int]
+    ADMINS_NOT_CLOSED_FIELD_NUMBER: _ClassVar[int]
+    UNPROVABLE_FIELD_NUMBER: _ClassVar[int]
+    admin_state: str
+    ended: int
+    held: int
+    review: int
+    closed: _containers.RepeatedScalarFieldContainer[str]
+    admins_not_closed: _containers.RepeatedScalarFieldContainer[str]
+    unprovable: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, admin_state: _Optional[str] = ..., ended: _Optional[int] = ..., held: _Optional[int] = ..., review: _Optional[int] = ..., closed: _Optional[_Iterable[str]] = ..., admins_not_closed: _Optional[_Iterable[str]] = ..., unprovable: _Optional[_Iterable[str]] = ...) -> None: ...

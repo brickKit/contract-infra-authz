@@ -31,6 +31,22 @@ service AccountService {
   rpc CheckAccountChange(CheckAccountChangeRequest) returns (CheckAccountChangeResponse);
 }
 
+service RecoveryService {
+  // Sources answers whether this member has applied its sources up to a moment (assembly protocol 15, 6.4: the
+  // replay of the sources is applied before the invariants are checked). The first call (since empty) answers the
+  // moment on this member's primary clock and asks every watermark source for a pull; later calls pass it back.
+  // Callers: the recovery tool (ops/recover) only; idempotent.
+  rpc Sources(SourcesRequest) returns (SourcesResponse);
+  // ReplayDeferred executes an intent-only revocation that affects the availability of authorization admins, deferred
+  // to 6.5: executing it, if no admin is provably available after, it is not executed and the holding it revokes is
+  // held for review. Callers: the recovery tool only; idempotent (a record executed already answers reflected).
+  rpc ReplayDeferred(ReplayDeferredRequest) returns (ReplayDeferredResponse);
+  // Check runs the invariant check on the final state (6.5): every record judged against its sources as a closure
+  // would, the subjects under review closed unless authorization admins, then the deployment's admins judged.
+  // Callers: the recovery tool only; repeatable.
+  rpc Check(CheckRequest) returns (CheckResponse);
+}
+
 // RevisionRef is security 09a's RevisionRef.
 message RevisionRef {
   string domain = 1;
@@ -173,4 +189,64 @@ message CheckAccountChangeResponse {
   string reason = 2;
   // The account holds the authorization admin role (a disablement of it alerts as security 08 says).
   bool administrator = 3;
+}
+
+message SourcesRequest {
+  // Empty on the first call; then the as_of of the first answer (an Instant on this member's primary clock).
+  string since = 1;
+}
+
+message SourceState {
+  // The source component and its watermark stream.
+  string component = 1;
+  string stream = 2;
+  // The source's alignment state (aligning, aligned, stalled, blocked).
+  string state = 3;
+  // The watermark is no older than since (be-protocol P9.35): what the source committed before since is applied.
+  bool applied = 4;
+}
+
+message SourcesResponse {
+  // The moment the answer is about: since, or now on the first call.
+  string as_of = 1;
+  repeated SourceState sources = 2;
+  // Every source applied.
+  bool all_applied = 3;
+}
+
+message ReplayDeferredRequest {
+  // The evidence record's canonical bytes, as the evidence store holds them.
+  bytes record = 1;
+  // The recovery's identity (the run profile's).
+  string recovery = 2;
+}
+
+message ReplayDeferredResponse {
+  // reflected, applied, for_review (not executed: no admin would be provably available; the holding is held),
+  // dangling (the record it revokes is gone).
+  string outcome = 1;
+  string detail = 2;
+}
+
+message CheckRequest {
+  // The recovery's identity (the run profile's).
+  string recovery = 1;
+  // The subjects of the records under review (6.2: a signature that does not hold): closed unless they are
+  // authorization admins after the replay.
+  repeated string review_subjects = 2;
+}
+
+message CheckResponse {
+  // The deployment's authorization state after the check (operational, recovery_pending, admin_recovery).
+  string admin_state = 1;
+  // Records the check moved: ended (a source ended or nothing left), held (not computable), marked for review
+  // (partly outside their limit).
+  int32 ended = 2;
+  int32 held = 3;
+  int32 review = 4;
+  // The review subjects closed (a recovery_review disposition each) and those left open as authorization admins.
+  repeated string closed = 5;
+  repeated string admins_not_closed = 6;
+  // Accounts whose status cannot be proven now: the check judged nothing; call again once the sources are applied.
+  repeated string unprovable = 7;
 }

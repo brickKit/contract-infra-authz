@@ -941,6 +941,444 @@ func (x *CheckAccountChangeResponse) GetAdministrator() bool {
 	return false
 }
 
+type SourcesRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Empty on the first call; then the as_of of the first answer (an Instant on this member's primary clock).
+	Since         string `protobuf:"bytes,1,opt,name=since,proto3" json:"since,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SourcesRequest) Reset() {
+	*x = SourcesRequest{}
+	mi := &file_be_authz_v3_authz_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SourcesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SourcesRequest) ProtoMessage() {}
+
+func (x *SourcesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_be_authz_v3_authz_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SourcesRequest.ProtoReflect.Descriptor instead.
+func (*SourcesRequest) Descriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *SourcesRequest) GetSince() string {
+	if x != nil {
+		return x.Since
+	}
+	return ""
+}
+
+type SourceState struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The source component and its watermark stream.
+	Component string `protobuf:"bytes,1,opt,name=component,proto3" json:"component,omitempty"`
+	Stream    string `protobuf:"bytes,2,opt,name=stream,proto3" json:"stream,omitempty"`
+	// The source's alignment state (aligning, aligned, stalled, blocked).
+	State string `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
+	// The watermark is no older than since (be-protocol P9.35): what the source committed before since is applied.
+	Applied       bool `protobuf:"varint,4,opt,name=applied,proto3" json:"applied,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SourceState) Reset() {
+	*x = SourceState{}
+	mi := &file_be_authz_v3_authz_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SourceState) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SourceState) ProtoMessage() {}
+
+func (x *SourceState) ProtoReflect() protoreflect.Message {
+	mi := &file_be_authz_v3_authz_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SourceState.ProtoReflect.Descriptor instead.
+func (*SourceState) Descriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *SourceState) GetComponent() string {
+	if x != nil {
+		return x.Component
+	}
+	return ""
+}
+
+func (x *SourceState) GetStream() string {
+	if x != nil {
+		return x.Stream
+	}
+	return ""
+}
+
+func (x *SourceState) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *SourceState) GetApplied() bool {
+	if x != nil {
+		return x.Applied
+	}
+	return false
+}
+
+type SourcesResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The moment the answer is about: since, or now on the first call.
+	AsOf    string         `protobuf:"bytes,1,opt,name=as_of,json=asOf,proto3" json:"as_of,omitempty"`
+	Sources []*SourceState `protobuf:"bytes,2,rep,name=sources,proto3" json:"sources,omitempty"`
+	// Every source applied.
+	AllApplied    bool `protobuf:"varint,3,opt,name=all_applied,json=allApplied,proto3" json:"all_applied,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SourcesResponse) Reset() {
+	*x = SourcesResponse{}
+	mi := &file_be_authz_v3_authz_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SourcesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SourcesResponse) ProtoMessage() {}
+
+func (x *SourcesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_be_authz_v3_authz_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SourcesResponse.ProtoReflect.Descriptor instead.
+func (*SourcesResponse) Descriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *SourcesResponse) GetAsOf() string {
+	if x != nil {
+		return x.AsOf
+	}
+	return ""
+}
+
+func (x *SourcesResponse) GetSources() []*SourceState {
+	if x != nil {
+		return x.Sources
+	}
+	return nil
+}
+
+func (x *SourcesResponse) GetAllApplied() bool {
+	if x != nil {
+		return x.AllApplied
+	}
+	return false
+}
+
+type ReplayDeferredRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The evidence record's canonical bytes, as the evidence store holds them.
+	Record []byte `protobuf:"bytes,1,opt,name=record,proto3" json:"record,omitempty"`
+	// The recovery's identity (the run profile's).
+	Recovery      string `protobuf:"bytes,2,opt,name=recovery,proto3" json:"recovery,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReplayDeferredRequest) Reset() {
+	*x = ReplayDeferredRequest{}
+	mi := &file_be_authz_v3_authz_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReplayDeferredRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReplayDeferredRequest) ProtoMessage() {}
+
+func (x *ReplayDeferredRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_be_authz_v3_authz_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReplayDeferredRequest.ProtoReflect.Descriptor instead.
+func (*ReplayDeferredRequest) Descriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ReplayDeferredRequest) GetRecord() []byte {
+	if x != nil {
+		return x.Record
+	}
+	return nil
+}
+
+func (x *ReplayDeferredRequest) GetRecovery() string {
+	if x != nil {
+		return x.Recovery
+	}
+	return ""
+}
+
+type ReplayDeferredResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// reflected, applied, for_review (not executed: no admin would be provably available; the holding is held),
+	// dangling (the record it revokes is gone).
+	Outcome       string `protobuf:"bytes,1,opt,name=outcome,proto3" json:"outcome,omitempty"`
+	Detail        string `protobuf:"bytes,2,opt,name=detail,proto3" json:"detail,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReplayDeferredResponse) Reset() {
+	*x = ReplayDeferredResponse{}
+	mi := &file_be_authz_v3_authz_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReplayDeferredResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReplayDeferredResponse) ProtoMessage() {}
+
+func (x *ReplayDeferredResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_be_authz_v3_authz_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReplayDeferredResponse.ProtoReflect.Descriptor instead.
+func (*ReplayDeferredResponse) Descriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ReplayDeferredResponse) GetOutcome() string {
+	if x != nil {
+		return x.Outcome
+	}
+	return ""
+}
+
+func (x *ReplayDeferredResponse) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+type CheckRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The recovery's identity (the run profile's).
+	Recovery string `protobuf:"bytes,1,opt,name=recovery,proto3" json:"recovery,omitempty"`
+	// The subjects of the records under review (6.2: a signature that does not hold): closed unless they are
+	// authorization admins after the replay.
+	ReviewSubjects []string `protobuf:"bytes,2,rep,name=review_subjects,json=reviewSubjects,proto3" json:"review_subjects,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *CheckRequest) Reset() {
+	*x = CheckRequest{}
+	mi := &file_be_authz_v3_authz_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckRequest) ProtoMessage() {}
+
+func (x *CheckRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_be_authz_v3_authz_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckRequest.ProtoReflect.Descriptor instead.
+func (*CheckRequest) Descriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *CheckRequest) GetRecovery() string {
+	if x != nil {
+		return x.Recovery
+	}
+	return ""
+}
+
+func (x *CheckRequest) GetReviewSubjects() []string {
+	if x != nil {
+		return x.ReviewSubjects
+	}
+	return nil
+}
+
+type CheckResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The deployment's authorization state after the check (operational, recovery_pending, admin_recovery).
+	AdminState string `protobuf:"bytes,1,opt,name=admin_state,json=adminState,proto3" json:"admin_state,omitempty"`
+	// Records the check moved: ended (a source ended or nothing left), held (not computable), marked for review
+	// (partly outside their limit).
+	Ended  int32 `protobuf:"varint,2,opt,name=ended,proto3" json:"ended,omitempty"`
+	Held   int32 `protobuf:"varint,3,opt,name=held,proto3" json:"held,omitempty"`
+	Review int32 `protobuf:"varint,4,opt,name=review,proto3" json:"review,omitempty"`
+	// The review subjects closed (a recovery_review disposition each) and those left open as authorization admins.
+	Closed          []string `protobuf:"bytes,5,rep,name=closed,proto3" json:"closed,omitempty"`
+	AdminsNotClosed []string `protobuf:"bytes,6,rep,name=admins_not_closed,json=adminsNotClosed,proto3" json:"admins_not_closed,omitempty"`
+	// Accounts whose status cannot be proven now: the check judged nothing; call again once the sources are applied.
+	Unprovable    []string `protobuf:"bytes,7,rep,name=unprovable,proto3" json:"unprovable,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckResponse) Reset() {
+	*x = CheckResponse{}
+	mi := &file_be_authz_v3_authz_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckResponse) ProtoMessage() {}
+
+func (x *CheckResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_be_authz_v3_authz_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckResponse.ProtoReflect.Descriptor instead.
+func (*CheckResponse) Descriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *CheckResponse) GetAdminState() string {
+	if x != nil {
+		return x.AdminState
+	}
+	return ""
+}
+
+func (x *CheckResponse) GetEnded() int32 {
+	if x != nil {
+		return x.Ended
+	}
+	return 0
+}
+
+func (x *CheckResponse) GetHeld() int32 {
+	if x != nil {
+		return x.Held
+	}
+	return 0
+}
+
+func (x *CheckResponse) GetReview() int32 {
+	if x != nil {
+		return x.Review
+	}
+	return 0
+}
+
+func (x *CheckResponse) GetClosed() []string {
+	if x != nil {
+		return x.Closed
+	}
+	return nil
+}
+
+func (x *CheckResponse) GetAdminsNotClosed() []string {
+	if x != nil {
+		return x.AdminsNotClosed
+	}
+	return nil
+}
+
+func (x *CheckResponse) GetUnprovable() []string {
+	if x != nil {
+		return x.Unprovable
+	}
+	return nil
+}
+
 var File_be_authz_v3_authz_proto protoreflect.FileDescriptor
 
 const file_be_authz_v3_authz_proto_rawDesc = "" +
@@ -1000,7 +1438,39 @@ const file_be_authz_v3_authz_proto_rawDesc = "" +
 	"\x1aCheckAccountChangeResponse\x12;\n" +
 	"\averdict\x18\x01 \x01(\x0e2!.be.authz.v3.AccountChangeVerdictR\averdict\x12\x16\n" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\x12$\n" +
-	"\radministrator\x18\x03 \x01(\bR\radministrator*z\n" +
+	"\radministrator\x18\x03 \x01(\bR\radministrator\"&\n" +
+	"\x0eSourcesRequest\x12\x14\n" +
+	"\x05since\x18\x01 \x01(\tR\x05since\"s\n" +
+	"\vSourceState\x12\x1c\n" +
+	"\tcomponent\x18\x01 \x01(\tR\tcomponent\x12\x16\n" +
+	"\x06stream\x18\x02 \x01(\tR\x06stream\x12\x14\n" +
+	"\x05state\x18\x03 \x01(\tR\x05state\x12\x18\n" +
+	"\aapplied\x18\x04 \x01(\bR\aapplied\"{\n" +
+	"\x0fSourcesResponse\x12\x13\n" +
+	"\x05as_of\x18\x01 \x01(\tR\x04asOf\x122\n" +
+	"\asources\x18\x02 \x03(\v2\x18.be.authz.v3.SourceStateR\asources\x12\x1f\n" +
+	"\vall_applied\x18\x03 \x01(\bR\n" +
+	"allApplied\"K\n" +
+	"\x15ReplayDeferredRequest\x12\x16\n" +
+	"\x06record\x18\x01 \x01(\fR\x06record\x12\x1a\n" +
+	"\brecovery\x18\x02 \x01(\tR\brecovery\"J\n" +
+	"\x16ReplayDeferredResponse\x12\x18\n" +
+	"\aoutcome\x18\x01 \x01(\tR\aoutcome\x12\x16\n" +
+	"\x06detail\x18\x02 \x01(\tR\x06detail\"S\n" +
+	"\fCheckRequest\x12\x1a\n" +
+	"\brecovery\x18\x01 \x01(\tR\brecovery\x12'\n" +
+	"\x0freview_subjects\x18\x02 \x03(\tR\x0ereviewSubjects\"\xd6\x01\n" +
+	"\rCheckResponse\x12\x1f\n" +
+	"\vadmin_state\x18\x01 \x01(\tR\n" +
+	"adminState\x12\x14\n" +
+	"\x05ended\x18\x02 \x01(\x05R\x05ended\x12\x12\n" +
+	"\x04held\x18\x03 \x01(\x05R\x04held\x12\x16\n" +
+	"\x06review\x18\x04 \x01(\x05R\x06review\x12\x16\n" +
+	"\x06closed\x18\x05 \x03(\tR\x06closed\x12*\n" +
+	"\x11admins_not_closed\x18\x06 \x03(\tR\x0fadminsNotClosed\x12\x1e\n" +
+	"\n" +
+	"unprovable\x18\a \x03(\tR\n" +
+	"unprovable*z\n" +
 	"\vShardStatus\x12\x1c\n" +
 	"\x18SHARD_STATUS_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16SHARD_STATUS_UNCHANGED\x10\x01\x12\x18\n" +
@@ -1021,7 +1491,11 @@ const file_be_authz_v3_authz_proto_rawDesc = "" +
 	"\x11DefinitionService\x12A\n" +
 	"\x06Submit\x12\x1a.be.authz.v3.SubmitRequest\x1a\x1b.be.authz.v3.SubmitResponse2w\n" +
 	"\x0eAccountService\x12e\n" +
-	"\x12CheckAccountChange\x12&.be.authz.v3.CheckAccountChangeRequest\x1a'.be.authz.v3.CheckAccountChangeResponseBHZFgithub.com/brickKit/contract-infra-authz/v3/gen/go/be/authz/v3;authzv3b\x06proto3"
+	"\x12CheckAccountChange\x12&.be.authz.v3.CheckAccountChangeRequest\x1a'.be.authz.v3.CheckAccountChangeResponse2\xf2\x01\n" +
+	"\x0fRecoveryService\x12D\n" +
+	"\aSources\x12\x1b.be.authz.v3.SourcesRequest\x1a\x1c.be.authz.v3.SourcesResponse\x12Y\n" +
+	"\x0eReplayDeferred\x12\".be.authz.v3.ReplayDeferredRequest\x1a#.be.authz.v3.ReplayDeferredResponse\x12>\n" +
+	"\x05Check\x12\x19.be.authz.v3.CheckRequest\x1a\x1a.be.authz.v3.CheckResponseBHZFgithub.com/brickKit/contract-infra-authz/v3/gen/go/be/authz/v3;authzv3b\x06proto3"
 
 var (
 	file_be_authz_v3_authz_proto_rawDescOnce sync.Once
@@ -1036,7 +1510,7 @@ func file_be_authz_v3_authz_proto_rawDescGZIP() []byte {
 }
 
 var file_be_authz_v3_authz_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_be_authz_v3_authz_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_be_authz_v3_authz_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_be_authz_v3_authz_proto_goTypes = []any{
 	(ShardStatus)(0),                   // 0: be.authz.v3.ShardStatus
 	(SubmitStatus)(0),                  // 1: be.authz.v3.SubmitStatus
@@ -1052,6 +1526,13 @@ var file_be_authz_v3_authz_proto_goTypes = []any{
 	(*SubmitResponse)(nil),             // 11: be.authz.v3.SubmitResponse
 	(*CheckAccountChangeRequest)(nil),  // 12: be.authz.v3.CheckAccountChangeRequest
 	(*CheckAccountChangeResponse)(nil), // 13: be.authz.v3.CheckAccountChangeResponse
+	(*SourcesRequest)(nil),             // 14: be.authz.v3.SourcesRequest
+	(*SourceState)(nil),                // 15: be.authz.v3.SourceState
+	(*SourcesResponse)(nil),            // 16: be.authz.v3.SourcesResponse
+	(*ReplayDeferredRequest)(nil),      // 17: be.authz.v3.ReplayDeferredRequest
+	(*ReplayDeferredResponse)(nil),     // 18: be.authz.v3.ReplayDeferredResponse
+	(*CheckRequest)(nil),               // 19: be.authz.v3.CheckRequest
+	(*CheckResponse)(nil),              // 20: be.authz.v3.CheckResponse
 }
 var file_be_authz_v3_authz_proto_depIdxs = []int32{
 	4,  // 0: be.authz.v3.VerifyRequest.held:type_name -> be.authz.v3.HeldShard
@@ -1062,17 +1543,24 @@ var file_be_authz_v3_authz_proto_depIdxs = []int32{
 	1,  // 5: be.authz.v3.SubmitResponse.status:type_name -> be.authz.v3.SubmitStatus
 	10, // 6: be.authz.v3.SubmitResponse.rejections:type_name -> be.authz.v3.Rejection
 	2,  // 7: be.authz.v3.CheckAccountChangeResponse.verdict:type_name -> be.authz.v3.AccountChangeVerdict
-	5,  // 8: be.authz.v3.ViewService.Verify:input_type -> be.authz.v3.VerifyRequest
-	9,  // 9: be.authz.v3.DefinitionService.Submit:input_type -> be.authz.v3.SubmitRequest
-	12, // 10: be.authz.v3.AccountService.CheckAccountChange:input_type -> be.authz.v3.CheckAccountChangeRequest
-	7,  // 11: be.authz.v3.ViewService.Verify:output_type -> be.authz.v3.VerifyResponse
-	11, // 12: be.authz.v3.DefinitionService.Submit:output_type -> be.authz.v3.SubmitResponse
-	13, // 13: be.authz.v3.AccountService.CheckAccountChange:output_type -> be.authz.v3.CheckAccountChangeResponse
-	11, // [11:14] is the sub-list for method output_type
-	8,  // [8:11] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	15, // 8: be.authz.v3.SourcesResponse.sources:type_name -> be.authz.v3.SourceState
+	5,  // 9: be.authz.v3.ViewService.Verify:input_type -> be.authz.v3.VerifyRequest
+	9,  // 10: be.authz.v3.DefinitionService.Submit:input_type -> be.authz.v3.SubmitRequest
+	12, // 11: be.authz.v3.AccountService.CheckAccountChange:input_type -> be.authz.v3.CheckAccountChangeRequest
+	14, // 12: be.authz.v3.RecoveryService.Sources:input_type -> be.authz.v3.SourcesRequest
+	17, // 13: be.authz.v3.RecoveryService.ReplayDeferred:input_type -> be.authz.v3.ReplayDeferredRequest
+	19, // 14: be.authz.v3.RecoveryService.Check:input_type -> be.authz.v3.CheckRequest
+	7,  // 15: be.authz.v3.ViewService.Verify:output_type -> be.authz.v3.VerifyResponse
+	11, // 16: be.authz.v3.DefinitionService.Submit:output_type -> be.authz.v3.SubmitResponse
+	13, // 17: be.authz.v3.AccountService.CheckAccountChange:output_type -> be.authz.v3.CheckAccountChangeResponse
+	16, // 18: be.authz.v3.RecoveryService.Sources:output_type -> be.authz.v3.SourcesResponse
+	18, // 19: be.authz.v3.RecoveryService.ReplayDeferred:output_type -> be.authz.v3.ReplayDeferredResponse
+	20, // 20: be.authz.v3.RecoveryService.Check:output_type -> be.authz.v3.CheckResponse
+	15, // [15:21] is the sub-list for method output_type
+	9,  // [9:15] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_be_authz_v3_authz_proto_init() }
@@ -1086,9 +1574,9 @@ func file_be_authz_v3_authz_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_be_authz_v3_authz_proto_rawDesc), len(file_be_authz_v3_authz_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   11,
+			NumMessages:   18,
 			NumExtensions: 0,
-			NumServices:   3,
+			NumServices:   4,
 		},
 		GoTypes:           file_be_authz_v3_authz_proto_goTypes,
 		DependencyIndexes: file_be_authz_v3_authz_proto_depIdxs,
