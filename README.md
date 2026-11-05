@@ -57,13 +57,13 @@
 
 1. **准入**：只许部署配置的身份成员调用（服务身份）。
 2. **要不要确认**：账号持有授权管理资格（受保护操作），或请求里 `second_person` 为真（身份成员按自己陈旧的依据办理、超过 `T_tight`），就要确认；否则答 `ALLOWED`。回答里的 `administrator` 说明账号是否持有授权管理资格（停用它时按安全 08 严重告警）。
-3. **确认是否成立**：确认记录的对象是这个账号，`target_state` 与 `target_state_version` 是这次的状态与账号当前的安全状态版本；没用过、没过期；确认人不是请求者，也不是账号本人；`holding` 的确认人此刻合格（对象不是授权管理员时，两人规则的确认人可按最后已应用的事实判断）；部署所有者的确认在收紧时随时可以，放宽（重新启用、解冻）只在除申请人与对象外没有可用管理员时。成立答 `ALLOWED`，没给答 `CONFIRMATION_REQUIRED`，不成立答 `REFUSED` 并写明原因。
+3. **确认是否成立**：确认记录的对象是这个账号，`target_state` 与 `target_state_version` 是这次的状态与账号当前的安全状态版本；没用过、没过期；确认人不是请求者，也不是账号本人；`holding` 的确认人此刻合格（对象不是授权管理员时，两人规则的确认人可按最后已应用的事实判断）；部署所有者的确认在收紧时随时可以，放宽（重新启用、解冻）只在除申请人与对象外没有可用管理员时。成立答 `ALLOWED`，没给答 `CONFIRMATION_REQUIRED`，不成立答 `REFUSED` 并写明原因；确认人的资格此刻证明不了（身份来源停住，管理员账号的确认人要此刻可证明）答 `UNPROVABLE`（alpha.4 起）：什么也不定，身份成员答处理中（`ADMIN_AVAILABILITY_UNPROVABLE`），来源恢复后重试。
 4. **不使用**：这一步只核对；确认在授权成员应用带着它的账号状态（`be.security.account_status` 的 `confirmation`）时才标为已使用，核对不通过的重新启用与解冻使该账号的授权管理持有资格转为待补确认。
 
 ## 引用
 
-- Go：`go get github.com/brickKit/contract-infra-authz/v3@v3.0.0-alpha.3`，导入 `github.com/brickKit/contract-infra-authz/v3/gen/go/be/authz/v3`。
-- Python（uv）：`contract-infra-authz = { git = "https://github.com/brickKit/contract-infra-authz", tag = "v3.0.0-alpha.3", subdirectory = "python" }`。
+- Go：`go get github.com/brickKit/contract-infra-authz/v3@v3.0.0-alpha.4`，导入 `github.com/brickKit/contract-infra-authz/v3/gen/go/be/authz/v3`。
+- Python（uv）：`contract-infra-authz = { git = "https://github.com/brickKit/contract-infra-authz", tag = "v3.0.0-alpha.4", subdirectory = "python" }`。
 
 运行时的版本：生成代码要求 `google.golang.org/protobuf` v1.36.12 与 grpc-go v1.83.2 起，Python 要求 `protobuf` 7.36.2、`grpcio` 1.84.0 起，与 SDK 锁定的版本一致。
 

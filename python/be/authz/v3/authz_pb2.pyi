@@ -26,6 +26,7 @@ class AccountChangeVerdict(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     ACCOUNT_CHANGE_VERDICT_ALLOWED: _ClassVar[AccountChangeVerdict]
     ACCOUNT_CHANGE_VERDICT_CONFIRMATION_REQUIRED: _ClassVar[AccountChangeVerdict]
     ACCOUNT_CHANGE_VERDICT_REFUSED: _ClassVar[AccountChangeVerdict]
+    ACCOUNT_CHANGE_VERDICT_UNPROVABLE: _ClassVar[AccountChangeVerdict]
 SHARD_STATUS_UNSPECIFIED: ShardStatus
 SHARD_STATUS_UNCHANGED: ShardStatus
 SHARD_STATUS_CHANGED: ShardStatus
@@ -37,6 +38,7 @@ ACCOUNT_CHANGE_VERDICT_UNSPECIFIED: AccountChangeVerdict
 ACCOUNT_CHANGE_VERDICT_ALLOWED: AccountChangeVerdict
 ACCOUNT_CHANGE_VERDICT_CONFIRMATION_REQUIRED: AccountChangeVerdict
 ACCOUNT_CHANGE_VERDICT_REFUSED: AccountChangeVerdict
+ACCOUNT_CHANGE_VERDICT_UNPROVABLE: AccountChangeVerdict
 
 class RevisionRef(_message.Message):
     __slots__ = ("domain", "value", "epoch", "instance")

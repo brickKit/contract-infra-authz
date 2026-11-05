@@ -143,6 +143,10 @@ const (
 	// The confirmation given does not hold (used, expired, another object, the requester's own or the account's own,
 	// a confirmer not qualified now), or this change cannot be made now.
 	AccountChangeVerdict_ACCOUNT_CHANGE_VERDICT_REFUSED AccountChangeVerdict = 3
+	// Whether the confirmation holds cannot be proven now (its confirmer's eligibility depends on an identity source
+	// that has stopped, security 03): nothing is decided; the identity member answers processing
+	// (ADMIN_AVAILABILITY_UNPROVABLE, nothing saved) and the caller asks again when the source answers (alpha.4).
+	AccountChangeVerdict_ACCOUNT_CHANGE_VERDICT_UNPROVABLE AccountChangeVerdict = 4
 )
 
 // Enum value maps for AccountChangeVerdict.
@@ -152,12 +156,14 @@ var (
 		1: "ACCOUNT_CHANGE_VERDICT_ALLOWED",
 		2: "ACCOUNT_CHANGE_VERDICT_CONFIRMATION_REQUIRED",
 		3: "ACCOUNT_CHANGE_VERDICT_REFUSED",
+		4: "ACCOUNT_CHANGE_VERDICT_UNPROVABLE",
 	}
 	AccountChangeVerdict_value = map[string]int32{
 		"ACCOUNT_CHANGE_VERDICT_UNSPECIFIED":           0,
 		"ACCOUNT_CHANGE_VERDICT_ALLOWED":               1,
 		"ACCOUNT_CHANGE_VERDICT_CONFIRMATION_REQUIRED": 2,
 		"ACCOUNT_CHANGE_VERDICT_REFUSED":               3,
+		"ACCOUNT_CHANGE_VERDICT_UNPROVABLE":            4,
 	}
 )
 
@@ -1003,12 +1009,13 @@ const file_be_authz_v3_authz_proto_rawDesc = "" +
 	"\fSubmitStatus\x12\x1d\n" +
 	"\x19SUBMIT_STATUS_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16SUBMIT_STATUS_ACCEPTED\x10\x01\x12\x1a\n" +
-	"\x16SUBMIT_STATUS_REJECTED\x10\x02*\xb8\x01\n" +
+	"\x16SUBMIT_STATUS_REJECTED\x10\x02*\xdf\x01\n" +
 	"\x14AccountChangeVerdict\x12&\n" +
 	"\"ACCOUNT_CHANGE_VERDICT_UNSPECIFIED\x10\x00\x12\"\n" +
 	"\x1eACCOUNT_CHANGE_VERDICT_ALLOWED\x10\x01\x120\n" +
 	",ACCOUNT_CHANGE_VERDICT_CONFIRMATION_REQUIRED\x10\x02\x12\"\n" +
-	"\x1eACCOUNT_CHANGE_VERDICT_REFUSED\x10\x032P\n" +
+	"\x1eACCOUNT_CHANGE_VERDICT_REFUSED\x10\x03\x12%\n" +
+	"!ACCOUNT_CHANGE_VERDICT_UNPROVABLE\x10\x042P\n" +
 	"\vViewService\x12A\n" +
 	"\x06Verify\x12\x1a.be.authz.v3.VerifyRequest\x1a\x1b.be.authz.v3.VerifyResponse2V\n" +
 	"\x11DefinitionService\x12A\n" +

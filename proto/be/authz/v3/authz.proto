@@ -160,6 +160,10 @@ enum AccountChangeVerdict {
   // The confirmation given does not hold (used, expired, another object, the requester's own or the account's own,
   // a confirmer not qualified now), or this change cannot be made now.
   ACCOUNT_CHANGE_VERDICT_REFUSED = 3;
+  // Whether the confirmation holds cannot be proven now (its confirmer's eligibility depends on an identity source
+  // that has stopped, security 03): nothing is decided; the identity member answers processing
+  // (ADMIN_AVAILABILITY_UNPROVABLE, nothing saved) and the caller asks again when the source answers (alpha.4).
+  ACCOUNT_CHANGE_VERDICT_UNPROVABLE = 4;
 }
 
 message CheckAccountChangeResponse {
