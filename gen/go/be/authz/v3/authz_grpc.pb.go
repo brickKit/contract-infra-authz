@@ -245,6 +245,8 @@ var DefinitionService_ServiceDesc = grpc.ServiceDesc{
 
 const (
 	AccountService_CheckAccountChange_FullMethodName = "/be.authz.v3.AccountService/CheckAccountChange"
+	AccountService_CheckLinkChange_FullMethodName    = "/be.authz.v3.AccountService/CheckLinkChange"
+	AccountService_Administrators_FullMethodName     = "/be.authz.v3.AccountService/Administrators"
 )
 
 // AccountServiceClient is the client API for AccountService service.
@@ -258,6 +260,14 @@ type AccountServiceClient interface {
 	// holds now; it uses nothing (the confirmation is used when the account status carrying it is applied). Callers:
 	// the identity member only; idempotent.
 	CheckAccountChange(ctx context.Context, in *CheckAccountChangeRequest, opts ...grpc.CallOption) (*CheckAccountChangeResponse, error)
+	// CheckLinkChange says whether the confirmation given holds for a change of an account's link to an employee (a
+	// protected operation, security 08 row 21: every link and every end of one needs it). It uses nothing: the
+	// confirmation is used when this member applies the link record carrying it from the employee member's watermark
+	// stream. Callers: the employee member (mdm/employee) only; idempotent (alpha.6).
+	CheckLinkChange(ctx context.Context, in *CheckLinkChangeRequest, opts ...grpc.CallOption) (*CheckLinkChangeResponse, error)
+	// Administrators answers which of the accounts hold the authorization admin role now (an employee's termination or
+	// the end of a link warns when one does, D62; it never refuses). Callers: the employee member only (alpha.6).
+	Administrators(ctx context.Context, in *AdministratorsRequest, opts ...grpc.CallOption) (*AdministratorsResponse, error)
 }
 
 type accountServiceClient struct {
@@ -278,6 +288,26 @@ func (c *accountServiceClient) CheckAccountChange(ctx context.Context, in *Check
 	return out, nil
 }
 
+func (c *accountServiceClient) CheckLinkChange(ctx context.Context, in *CheckLinkChangeRequest, opts ...grpc.CallOption) (*CheckLinkChangeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckLinkChangeResponse)
+	err := c.cc.Invoke(ctx, AccountService_CheckLinkChange_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountServiceClient) Administrators(ctx context.Context, in *AdministratorsRequest, opts ...grpc.CallOption) (*AdministratorsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AdministratorsResponse)
+	err := c.cc.Invoke(ctx, AccountService_Administrators_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AccountServiceServer is the server API for AccountService service.
 // All implementations must embed UnimplementedAccountServiceServer
 // for forward compatibility.
@@ -289,6 +319,14 @@ type AccountServiceServer interface {
 	// holds now; it uses nothing (the confirmation is used when the account status carrying it is applied). Callers:
 	// the identity member only; idempotent.
 	CheckAccountChange(context.Context, *CheckAccountChangeRequest) (*CheckAccountChangeResponse, error)
+	// CheckLinkChange says whether the confirmation given holds for a change of an account's link to an employee (a
+	// protected operation, security 08 row 21: every link and every end of one needs it). It uses nothing: the
+	// confirmation is used when this member applies the link record carrying it from the employee member's watermark
+	// stream. Callers: the employee member (mdm/employee) only; idempotent (alpha.6).
+	CheckLinkChange(context.Context, *CheckLinkChangeRequest) (*CheckLinkChangeResponse, error)
+	// Administrators answers which of the accounts hold the authorization admin role now (an employee's termination or
+	// the end of a link warns when one does, D62; it never refuses). Callers: the employee member only (alpha.6).
+	Administrators(context.Context, *AdministratorsRequest) (*AdministratorsResponse, error)
 	mustEmbedUnimplementedAccountServiceServer()
 }
 
@@ -301,6 +339,12 @@ type UnimplementedAccountServiceServer struct{}
 
 func (UnimplementedAccountServiceServer) CheckAccountChange(context.Context, *CheckAccountChangeRequest) (*CheckAccountChangeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CheckAccountChange not implemented")
+}
+func (UnimplementedAccountServiceServer) CheckLinkChange(context.Context, *CheckLinkChangeRequest) (*CheckLinkChangeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckLinkChange not implemented")
+}
+func (UnimplementedAccountServiceServer) Administrators(context.Context, *AdministratorsRequest) (*AdministratorsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Administrators not implemented")
 }
 func (UnimplementedAccountServiceServer) mustEmbedUnimplementedAccountServiceServer() {}
 func (UnimplementedAccountServiceServer) testEmbeddedByValue()                        {}
@@ -341,6 +385,42 @@ func _AccountService_CheckAccountChange_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AccountService_CheckLinkChange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckLinkChangeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServiceServer).CheckLinkChange(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountService_CheckLinkChange_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServiceServer).CheckLinkChange(ctx, req.(*CheckLinkChangeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccountService_Administrators_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdministratorsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServiceServer).Administrators(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountService_Administrators_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServiceServer).Administrators(ctx, req.(*AdministratorsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AccountService_ServiceDesc is the grpc.ServiceDesc for AccountService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -351,6 +431,14 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckAccountChange",
 			Handler:    _AccountService_CheckAccountChange_Handler,
+		},
+		{
+			MethodName: "CheckLinkChange",
+			Handler:    _AccountService_CheckLinkChange_Handler,
+		},
+		{
+			MethodName: "Administrators",
+			Handler:    _AccountService_Administrators_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

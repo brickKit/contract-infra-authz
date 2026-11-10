@@ -175,6 +175,16 @@ class AccountServiceStub:
                 request_serializer=be_dot_authz_dot_v3_dot_authz__pb2.CheckAccountChangeRequest.SerializeToString,
                 response_deserializer=be_dot_authz_dot_v3_dot_authz__pb2.CheckAccountChangeResponse.FromString,
                 _registered_method=True)
+        self.CheckLinkChange = channel.unary_unary(
+                '/be.authz.v3.AccountService/CheckLinkChange',
+                request_serializer=be_dot_authz_dot_v3_dot_authz__pb2.CheckLinkChangeRequest.SerializeToString,
+                response_deserializer=be_dot_authz_dot_v3_dot_authz__pb2.CheckLinkChangeResponse.FromString,
+                _registered_method=True)
+        self.Administrators = channel.unary_unary(
+                '/be.authz.v3.AccountService/Administrators',
+                request_serializer=be_dot_authz_dot_v3_dot_authz__pb2.AdministratorsRequest.SerializeToString,
+                response_deserializer=be_dot_authz_dot_v3_dot_authz__pb2.AdministratorsResponse.FromString,
+                _registered_method=True)
 
 
 class AccountServiceServicer:
@@ -191,6 +201,24 @@ class AccountServiceServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def CheckLinkChange(self, request, context):
+        """CheckLinkChange says whether the confirmation given holds for a change of an account's link to an employee (a
+        protected operation, security 08 row 21: every link and every end of one needs it). It uses nothing: the
+        confirmation is used when this member applies the link record carrying it from the employee member's watermark
+        stream. Callers: the employee member (mdm/employee) only; idempotent (alpha.6).
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Administrators(self, request, context):
+        """Administrators answers which of the accounts hold the authorization admin role now (an employee's termination or
+        the end of a link warns when one does, D62; it never refuses). Callers: the employee member only (alpha.6).
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_AccountServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -198,6 +226,16 @@ def add_AccountServiceServicer_to_server(servicer, server):
                     servicer.CheckAccountChange,
                     request_deserializer=be_dot_authz_dot_v3_dot_authz__pb2.CheckAccountChangeRequest.FromString,
                     response_serializer=be_dot_authz_dot_v3_dot_authz__pb2.CheckAccountChangeResponse.SerializeToString,
+            ),
+            'CheckLinkChange': grpc.unary_unary_rpc_method_handler(
+                    servicer.CheckLinkChange,
+                    request_deserializer=be_dot_authz_dot_v3_dot_authz__pb2.CheckLinkChangeRequest.FromString,
+                    response_serializer=be_dot_authz_dot_v3_dot_authz__pb2.CheckLinkChangeResponse.SerializeToString,
+            ),
+            'Administrators': grpc.unary_unary_rpc_method_handler(
+                    servicer.Administrators,
+                    request_deserializer=be_dot_authz_dot_v3_dot_authz__pb2.AdministratorsRequest.FromString,
+                    response_serializer=be_dot_authz_dot_v3_dot_authz__pb2.AdministratorsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -229,6 +267,60 @@ class AccountService:
             '/be.authz.v3.AccountService/CheckAccountChange',
             be_dot_authz_dot_v3_dot_authz__pb2.CheckAccountChangeRequest.SerializeToString,
             be_dot_authz_dot_v3_dot_authz__pb2.CheckAccountChangeResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CheckLinkChange(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/be.authz.v3.AccountService/CheckLinkChange',
+            be_dot_authz_dot_v3_dot_authz__pb2.CheckLinkChangeRequest.SerializeToString,
+            be_dot_authz_dot_v3_dot_authz__pb2.CheckLinkChangeResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Administrators(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/be.authz.v3.AccountService/Administrators',
+            be_dot_authz_dot_v3_dot_authz__pb2.AdministratorsRequest.SerializeToString,
+            be_dot_authz_dot_v3_dot_authz__pb2.AdministratorsResponse.FromString,
             options,
             channel_credentials,
             insecure,

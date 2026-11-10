@@ -941,6 +941,243 @@ func (x *CheckAccountChangeResponse) GetAdministrator() bool {
 	return false
 }
 
+type CheckLinkChangeRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The employee's ID in the employee member.
+	Employee string `protobuf:"bytes,1,opt,name=employee,proto3" json:"employee,omitempty"`
+	// The account's platform principal.
+	Account string `protobuf:"bytes,2,opt,name=account,proto3" json:"account,omitempty"`
+	// link or unlink.
+	Action string `protobuf:"bytes,3,opt,name=action,proto3" json:"action,omitempty"`
+	// The employee's version the change is made on: the confirmation binds it.
+	EmployeeVersion int64 `protobuf:"varint,4,opt,name=employee_version,json=employeeVersion,proto3" json:"employee_version,omitempty"`
+	// Who asks the employee member for the change (the platform principal).
+	Requester string `protobuf:"bytes,5,opt,name=requester,proto3" json:"requester,omitempty"`
+	// A confirmation's ID (be.security.confirmation, its target this employee, account, action and employee version),
+	// or empty.
+	Confirmation  string `protobuf:"bytes,6,opt,name=confirmation,proto3" json:"confirmation,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckLinkChangeRequest) Reset() {
+	*x = CheckLinkChangeRequest{}
+	mi := &file_be_authz_v3_authz_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckLinkChangeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckLinkChangeRequest) ProtoMessage() {}
+
+func (x *CheckLinkChangeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_be_authz_v3_authz_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckLinkChangeRequest.ProtoReflect.Descriptor instead.
+func (*CheckLinkChangeRequest) Descriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *CheckLinkChangeRequest) GetEmployee() string {
+	if x != nil {
+		return x.Employee
+	}
+	return ""
+}
+
+func (x *CheckLinkChangeRequest) GetAccount() string {
+	if x != nil {
+		return x.Account
+	}
+	return ""
+}
+
+func (x *CheckLinkChangeRequest) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+func (x *CheckLinkChangeRequest) GetEmployeeVersion() int64 {
+	if x != nil {
+		return x.EmployeeVersion
+	}
+	return 0
+}
+
+func (x *CheckLinkChangeRequest) GetRequester() string {
+	if x != nil {
+		return x.Requester
+	}
+	return ""
+}
+
+func (x *CheckLinkChangeRequest) GetConfirmation() string {
+	if x != nil {
+		return x.Confirmation
+	}
+	return ""
+}
+
+type CheckLinkChangeResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// ALLOWED: the confirmation holds; CONFIRMATION_REQUIRED: none was given; REFUSED: the one given does not hold
+	// (used, expired, another object, the requester's own, the employee's own account, a confirmer not qualified now);
+	// UNPROVABLE: whether it holds cannot be proven now, nothing is decided.
+	Verdict AccountChangeVerdict `protobuf:"varint,1,opt,name=verdict,proto3,enum=be.authz.v3.AccountChangeVerdict" json:"verdict,omitempty"`
+	// Why; for people and logs, never parsed.
+	Reason        string `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckLinkChangeResponse) Reset() {
+	*x = CheckLinkChangeResponse{}
+	mi := &file_be_authz_v3_authz_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckLinkChangeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckLinkChangeResponse) ProtoMessage() {}
+
+func (x *CheckLinkChangeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_be_authz_v3_authz_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckLinkChangeResponse.ProtoReflect.Descriptor instead.
+func (*CheckLinkChangeResponse) Descriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *CheckLinkChangeResponse) GetVerdict() AccountChangeVerdict {
+	if x != nil {
+		return x.Verdict
+	}
+	return AccountChangeVerdict_ACCOUNT_CHANGE_VERDICT_UNSPECIFIED
+}
+
+func (x *CheckLinkChangeResponse) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type AdministratorsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Platform principals, at most 100.
+	Accounts      []string `protobuf:"bytes,1,rep,name=accounts,proto3" json:"accounts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AdministratorsRequest) Reset() {
+	*x = AdministratorsRequest{}
+	mi := &file_be_authz_v3_authz_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AdministratorsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AdministratorsRequest) ProtoMessage() {}
+
+func (x *AdministratorsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_be_authz_v3_authz_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AdministratorsRequest.ProtoReflect.Descriptor instead.
+func (*AdministratorsRequest) Descriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *AdministratorsRequest) GetAccounts() []string {
+	if x != nil {
+		return x.Accounts
+	}
+	return nil
+}
+
+type AdministratorsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Those of the accounts that hold the authorization admin role now (an effective or a held admin holding).
+	Administrators []string `protobuf:"bytes,1,rep,name=administrators,proto3" json:"administrators,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *AdministratorsResponse) Reset() {
+	*x = AdministratorsResponse{}
+	mi := &file_be_authz_v3_authz_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AdministratorsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AdministratorsResponse) ProtoMessage() {}
+
+func (x *AdministratorsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_be_authz_v3_authz_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AdministratorsResponse.ProtoReflect.Descriptor instead.
+func (*AdministratorsResponse) Descriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *AdministratorsResponse) GetAdministrators() []string {
+	if x != nil {
+		return x.Administrators
+	}
+	return nil
+}
+
 type SourcesRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Empty on the first call; then the as_of of the first answer (an Instant on this member's primary clock).
@@ -951,7 +1188,7 @@ type SourcesRequest struct {
 
 func (x *SourcesRequest) Reset() {
 	*x = SourcesRequest{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[11]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -963,7 +1200,7 @@ func (x *SourcesRequest) String() string {
 func (*SourcesRequest) ProtoMessage() {}
 
 func (x *SourcesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[11]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -976,7 +1213,7 @@ func (x *SourcesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SourcesRequest.ProtoReflect.Descriptor instead.
 func (*SourcesRequest) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{11}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *SourcesRequest) GetSince() string {
@@ -1001,7 +1238,7 @@ type SourceState struct {
 
 func (x *SourceState) Reset() {
 	*x = SourceState{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[12]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1013,7 +1250,7 @@ func (x *SourceState) String() string {
 func (*SourceState) ProtoMessage() {}
 
 func (x *SourceState) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[12]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1026,7 +1263,7 @@ func (x *SourceState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SourceState.ProtoReflect.Descriptor instead.
 func (*SourceState) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{12}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *SourceState) GetComponent() string {
@@ -1070,7 +1307,7 @@ type SourcesResponse struct {
 
 func (x *SourcesResponse) Reset() {
 	*x = SourcesResponse{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[13]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1082,7 +1319,7 @@ func (x *SourcesResponse) String() string {
 func (*SourcesResponse) ProtoMessage() {}
 
 func (x *SourcesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[13]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1095,7 +1332,7 @@ func (x *SourcesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SourcesResponse.ProtoReflect.Descriptor instead.
 func (*SourcesResponse) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{13}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *SourcesResponse) GetAsOf() string {
@@ -1131,7 +1368,7 @@ type ReplayDeferredRequest struct {
 
 func (x *ReplayDeferredRequest) Reset() {
 	*x = ReplayDeferredRequest{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[14]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1143,7 +1380,7 @@ func (x *ReplayDeferredRequest) String() string {
 func (*ReplayDeferredRequest) ProtoMessage() {}
 
 func (x *ReplayDeferredRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[14]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1156,7 +1393,7 @@ func (x *ReplayDeferredRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReplayDeferredRequest.ProtoReflect.Descriptor instead.
 func (*ReplayDeferredRequest) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{14}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ReplayDeferredRequest) GetRecord() []byte {
@@ -1185,7 +1422,7 @@ type ReplayDeferredResponse struct {
 
 func (x *ReplayDeferredResponse) Reset() {
 	*x = ReplayDeferredResponse{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[15]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1197,7 +1434,7 @@ func (x *ReplayDeferredResponse) String() string {
 func (*ReplayDeferredResponse) ProtoMessage() {}
 
 func (x *ReplayDeferredResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[15]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1210,7 +1447,7 @@ func (x *ReplayDeferredResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReplayDeferredResponse.ProtoReflect.Descriptor instead.
 func (*ReplayDeferredResponse) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{15}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ReplayDeferredResponse) GetOutcome() string {
@@ -1240,7 +1477,7 @@ type CheckRequest struct {
 
 func (x *CheckRequest) Reset() {
 	*x = CheckRequest{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[16]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1252,7 +1489,7 @@ func (x *CheckRequest) String() string {
 func (*CheckRequest) ProtoMessage() {}
 
 func (x *CheckRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[16]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1265,7 +1502,7 @@ func (x *CheckRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckRequest.ProtoReflect.Descriptor instead.
 func (*CheckRequest) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{16}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *CheckRequest) GetRecovery() string {
@@ -1302,7 +1539,7 @@ type CheckResponse struct {
 
 func (x *CheckResponse) Reset() {
 	*x = CheckResponse{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[17]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1314,7 +1551,7 @@ func (x *CheckResponse) String() string {
 func (*CheckResponse) ProtoMessage() {}
 
 func (x *CheckResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[17]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1327,7 +1564,7 @@ func (x *CheckResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckResponse.ProtoReflect.Descriptor instead.
 func (*CheckResponse) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{17}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *CheckResponse) GetAdminState() string {
@@ -1438,7 +1675,21 @@ const file_be_authz_v3_authz_proto_rawDesc = "" +
 	"\x1aCheckAccountChangeResponse\x12;\n" +
 	"\averdict\x18\x01 \x01(\x0e2!.be.authz.v3.AccountChangeVerdictR\averdict\x12\x16\n" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\x12$\n" +
-	"\radministrator\x18\x03 \x01(\bR\radministrator\"&\n" +
+	"\radministrator\x18\x03 \x01(\bR\radministrator\"\xd3\x01\n" +
+	"\x16CheckLinkChangeRequest\x12\x1a\n" +
+	"\bemployee\x18\x01 \x01(\tR\bemployee\x12\x18\n" +
+	"\aaccount\x18\x02 \x01(\tR\aaccount\x12\x16\n" +
+	"\x06action\x18\x03 \x01(\tR\x06action\x12)\n" +
+	"\x10employee_version\x18\x04 \x01(\x03R\x0femployeeVersion\x12\x1c\n" +
+	"\trequester\x18\x05 \x01(\tR\trequester\x12\"\n" +
+	"\fconfirmation\x18\x06 \x01(\tR\fconfirmation\"n\n" +
+	"\x17CheckLinkChangeResponse\x12;\n" +
+	"\averdict\x18\x01 \x01(\x0e2!.be.authz.v3.AccountChangeVerdictR\averdict\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\"3\n" +
+	"\x15AdministratorsRequest\x12\x1a\n" +
+	"\baccounts\x18\x01 \x03(\tR\baccounts\"@\n" +
+	"\x16AdministratorsResponse\x12&\n" +
+	"\x0eadministrators\x18\x01 \x03(\tR\x0eadministrators\"&\n" +
 	"\x0eSourcesRequest\x12\x14\n" +
 	"\x05since\x18\x01 \x01(\tR\x05since\"s\n" +
 	"\vSourceState\x12\x1c\n" +
@@ -1489,9 +1740,11 @@ const file_be_authz_v3_authz_proto_rawDesc = "" +
 	"\vViewService\x12A\n" +
 	"\x06Verify\x12\x1a.be.authz.v3.VerifyRequest\x1a\x1b.be.authz.v3.VerifyResponse2V\n" +
 	"\x11DefinitionService\x12A\n" +
-	"\x06Submit\x12\x1a.be.authz.v3.SubmitRequest\x1a\x1b.be.authz.v3.SubmitResponse2w\n" +
+	"\x06Submit\x12\x1a.be.authz.v3.SubmitRequest\x1a\x1b.be.authz.v3.SubmitResponse2\xb0\x02\n" +
 	"\x0eAccountService\x12e\n" +
-	"\x12CheckAccountChange\x12&.be.authz.v3.CheckAccountChangeRequest\x1a'.be.authz.v3.CheckAccountChangeResponse2\xf2\x01\n" +
+	"\x12CheckAccountChange\x12&.be.authz.v3.CheckAccountChangeRequest\x1a'.be.authz.v3.CheckAccountChangeResponse\x12\\\n" +
+	"\x0fCheckLinkChange\x12#.be.authz.v3.CheckLinkChangeRequest\x1a$.be.authz.v3.CheckLinkChangeResponse\x12Y\n" +
+	"\x0eAdministrators\x12\".be.authz.v3.AdministratorsRequest\x1a#.be.authz.v3.AdministratorsResponse2\xf2\x01\n" +
 	"\x0fRecoveryService\x12D\n" +
 	"\aSources\x12\x1b.be.authz.v3.SourcesRequest\x1a\x1c.be.authz.v3.SourcesResponse\x12Y\n" +
 	"\x0eReplayDeferred\x12\".be.authz.v3.ReplayDeferredRequest\x1a#.be.authz.v3.ReplayDeferredResponse\x12>\n" +
@@ -1510,7 +1763,7 @@ func file_be_authz_v3_authz_proto_rawDescGZIP() []byte {
 }
 
 var file_be_authz_v3_authz_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_be_authz_v3_authz_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_be_authz_v3_authz_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_be_authz_v3_authz_proto_goTypes = []any{
 	(ShardStatus)(0),                   // 0: be.authz.v3.ShardStatus
 	(SubmitStatus)(0),                  // 1: be.authz.v3.SubmitStatus
@@ -1526,13 +1779,17 @@ var file_be_authz_v3_authz_proto_goTypes = []any{
 	(*SubmitResponse)(nil),             // 11: be.authz.v3.SubmitResponse
 	(*CheckAccountChangeRequest)(nil),  // 12: be.authz.v3.CheckAccountChangeRequest
 	(*CheckAccountChangeResponse)(nil), // 13: be.authz.v3.CheckAccountChangeResponse
-	(*SourcesRequest)(nil),             // 14: be.authz.v3.SourcesRequest
-	(*SourceState)(nil),                // 15: be.authz.v3.SourceState
-	(*SourcesResponse)(nil),            // 16: be.authz.v3.SourcesResponse
-	(*ReplayDeferredRequest)(nil),      // 17: be.authz.v3.ReplayDeferredRequest
-	(*ReplayDeferredResponse)(nil),     // 18: be.authz.v3.ReplayDeferredResponse
-	(*CheckRequest)(nil),               // 19: be.authz.v3.CheckRequest
-	(*CheckResponse)(nil),              // 20: be.authz.v3.CheckResponse
+	(*CheckLinkChangeRequest)(nil),     // 14: be.authz.v3.CheckLinkChangeRequest
+	(*CheckLinkChangeResponse)(nil),    // 15: be.authz.v3.CheckLinkChangeResponse
+	(*AdministratorsRequest)(nil),      // 16: be.authz.v3.AdministratorsRequest
+	(*AdministratorsResponse)(nil),     // 17: be.authz.v3.AdministratorsResponse
+	(*SourcesRequest)(nil),             // 18: be.authz.v3.SourcesRequest
+	(*SourceState)(nil),                // 19: be.authz.v3.SourceState
+	(*SourcesResponse)(nil),            // 20: be.authz.v3.SourcesResponse
+	(*ReplayDeferredRequest)(nil),      // 21: be.authz.v3.ReplayDeferredRequest
+	(*ReplayDeferredResponse)(nil),     // 22: be.authz.v3.ReplayDeferredResponse
+	(*CheckRequest)(nil),               // 23: be.authz.v3.CheckRequest
+	(*CheckResponse)(nil),              // 24: be.authz.v3.CheckResponse
 }
 var file_be_authz_v3_authz_proto_depIdxs = []int32{
 	4,  // 0: be.authz.v3.VerifyRequest.held:type_name -> be.authz.v3.HeldShard
@@ -1543,24 +1800,29 @@ var file_be_authz_v3_authz_proto_depIdxs = []int32{
 	1,  // 5: be.authz.v3.SubmitResponse.status:type_name -> be.authz.v3.SubmitStatus
 	10, // 6: be.authz.v3.SubmitResponse.rejections:type_name -> be.authz.v3.Rejection
 	2,  // 7: be.authz.v3.CheckAccountChangeResponse.verdict:type_name -> be.authz.v3.AccountChangeVerdict
-	15, // 8: be.authz.v3.SourcesResponse.sources:type_name -> be.authz.v3.SourceState
-	5,  // 9: be.authz.v3.ViewService.Verify:input_type -> be.authz.v3.VerifyRequest
-	9,  // 10: be.authz.v3.DefinitionService.Submit:input_type -> be.authz.v3.SubmitRequest
-	12, // 11: be.authz.v3.AccountService.CheckAccountChange:input_type -> be.authz.v3.CheckAccountChangeRequest
-	14, // 12: be.authz.v3.RecoveryService.Sources:input_type -> be.authz.v3.SourcesRequest
-	17, // 13: be.authz.v3.RecoveryService.ReplayDeferred:input_type -> be.authz.v3.ReplayDeferredRequest
-	19, // 14: be.authz.v3.RecoveryService.Check:input_type -> be.authz.v3.CheckRequest
-	7,  // 15: be.authz.v3.ViewService.Verify:output_type -> be.authz.v3.VerifyResponse
-	11, // 16: be.authz.v3.DefinitionService.Submit:output_type -> be.authz.v3.SubmitResponse
-	13, // 17: be.authz.v3.AccountService.CheckAccountChange:output_type -> be.authz.v3.CheckAccountChangeResponse
-	16, // 18: be.authz.v3.RecoveryService.Sources:output_type -> be.authz.v3.SourcesResponse
-	18, // 19: be.authz.v3.RecoveryService.ReplayDeferred:output_type -> be.authz.v3.ReplayDeferredResponse
-	20, // 20: be.authz.v3.RecoveryService.Check:output_type -> be.authz.v3.CheckResponse
-	15, // [15:21] is the sub-list for method output_type
-	9,  // [9:15] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	2,  // 8: be.authz.v3.CheckLinkChangeResponse.verdict:type_name -> be.authz.v3.AccountChangeVerdict
+	19, // 9: be.authz.v3.SourcesResponse.sources:type_name -> be.authz.v3.SourceState
+	5,  // 10: be.authz.v3.ViewService.Verify:input_type -> be.authz.v3.VerifyRequest
+	9,  // 11: be.authz.v3.DefinitionService.Submit:input_type -> be.authz.v3.SubmitRequest
+	12, // 12: be.authz.v3.AccountService.CheckAccountChange:input_type -> be.authz.v3.CheckAccountChangeRequest
+	14, // 13: be.authz.v3.AccountService.CheckLinkChange:input_type -> be.authz.v3.CheckLinkChangeRequest
+	16, // 14: be.authz.v3.AccountService.Administrators:input_type -> be.authz.v3.AdministratorsRequest
+	18, // 15: be.authz.v3.RecoveryService.Sources:input_type -> be.authz.v3.SourcesRequest
+	21, // 16: be.authz.v3.RecoveryService.ReplayDeferred:input_type -> be.authz.v3.ReplayDeferredRequest
+	23, // 17: be.authz.v3.RecoveryService.Check:input_type -> be.authz.v3.CheckRequest
+	7,  // 18: be.authz.v3.ViewService.Verify:output_type -> be.authz.v3.VerifyResponse
+	11, // 19: be.authz.v3.DefinitionService.Submit:output_type -> be.authz.v3.SubmitResponse
+	13, // 20: be.authz.v3.AccountService.CheckAccountChange:output_type -> be.authz.v3.CheckAccountChangeResponse
+	15, // 21: be.authz.v3.AccountService.CheckLinkChange:output_type -> be.authz.v3.CheckLinkChangeResponse
+	17, // 22: be.authz.v3.AccountService.Administrators:output_type -> be.authz.v3.AdministratorsResponse
+	20, // 23: be.authz.v3.RecoveryService.Sources:output_type -> be.authz.v3.SourcesResponse
+	22, // 24: be.authz.v3.RecoveryService.ReplayDeferred:output_type -> be.authz.v3.ReplayDeferredResponse
+	24, // 25: be.authz.v3.RecoveryService.Check:output_type -> be.authz.v3.CheckResponse
+	18, // [18:26] is the sub-list for method output_type
+	10, // [10:18] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_be_authz_v3_authz_proto_init() }
@@ -1574,7 +1836,7 @@ func file_be_authz_v3_authz_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_be_authz_v3_authz_proto_rawDesc), len(file_be_authz_v3_authz_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   18,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   4,
 		},

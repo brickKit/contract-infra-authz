@@ -8,7 +8,7 @@
 
 | 位置 | 是什么 |
 | --- | --- |
-| `proto/be/authz/v3/authz.proto` | 四个服务：`ViewService.Verify`（核验视图）、`DefinitionService.Submit`（提交定义）、`AccountService.CheckAccountChange`（账号状态变更前的确认，alpha.3 起）、`RecoveryService`（整套恢复的 6.4–6.5，alpha.5 起） |
+| `proto/be/authz/v3/authz.proto` | 四个服务：`ViewService.Verify`（核验视图）、`DefinitionService.Submit`（提交定义）、`AccountService.CheckAccountChange`（账号状态变更前的确认，alpha.3 起）、`AccountService.CheckLinkChange` 与 `Administrators`（员工成员的账号关联与最后管理员的提示，alpha.6 起）、`RecoveryService`（整套恢复的 6.4–6.5，alpha.5 起） |
 | `gen/go/be/authz/v3/` | Go 代码，包 `authzv3`（消息与 gRPC 桩），提交在仓库里 |
 | `python/` | Python 包 `contract-infra-authz`，模块 `be.authz.v3`（`authz_pb2`、`authz_pb2_grpc`）；`be` 是各契约包共用的命名空间，没有 `__init__.py` |
 
@@ -60,6 +60,14 @@
 3. **确认是否成立**：确认记录的对象是这个账号，`target_state` 与 `target_state_version` 是这次的状态与账号当前的安全状态版本；没用过、没过期；确认人不是请求者，也不是账号本人；`holding` 的确认人此刻合格（对象不是授权管理员时，两人规则的确认人可按最后已应用的事实判断）；部署所有者的确认在收紧时随时可以，放宽（重新启用、解冻）只在除申请人与对象外没有可用管理员时。成立答 `ALLOWED`，没给答 `CONFIRMATION_REQUIRED`，不成立答 `REFUSED` 并写明原因；确认人的资格此刻证明不了（身份来源停住，管理员账号的确认人要此刻可证明）答 `UNPROVABLE`（alpha.4 起）：什么也不定，身份成员答处理中（`ADMIN_AVAILABILITY_UNPROVABLE`），来源恢复后重试。
 4. **不使用**：这一步只核对；确认在授权成员应用带着它的账号状态（`be.security.account_status` 的 `confirmation`）时才标为已使用，核对不通过的重新启用与解冻使该账号的授权管理持有资格转为待补确认。
 
+### `AccountService.CheckLinkChange` 与 `Administrators`（alpha.6 起）
+
+员工成员（`mdm/employee`）建立或结束一条账号与员工的关联之前问一次（安全 08 第 21 行：账号与员工关联的变更是受保护操作，建立与结束都要确认）。
+
+1. **准入**：两个方法都只许部署配置的员工成员调用（服务身份）。
+2. **`CheckLinkChange`**：确认记录的对象是这个员工的账号关联，绑定员工、账号、动作（`link` 或 `unlink`）与员工版本；没用过、没过期；确认人不是请求者，也不是这个员工的任何账号（关联同一员工的账号算一个人，按本成员应用到的员工关联判断），此刻是合格的管理者；没有别的可用管理者时部署所有者确认（收紧即 `unlink` 随时可以，`link` 只在没有别的可用管理者时）。成立答 `ALLOWED`，没给答 `CONFIRMATION_REQUIRED`，不成立答 `REFUSED`，此刻证明不了答 `UNPROVABLE`。只核对：确认在本成员从员工成员的水位流应用带着它的关联记录时才标为已使用（与账号状态相同）。
+3. **`Administrators`**：给一组账号（至多 100 个），答其中此刻持有授权管理资格的（生效或被暂停的管理持有）。员工成员办理离职或结束关联时据此提示“最后的授权管理员”（D62），从不因此拒绝。
+
 ### `RecoveryService`（alpha.5 起）
 
 整套恢复第 6 步的 6.4–6.5（装配项目协议 15）。三个方法都只许恢复工具（`ops/recover`）调用，在恢复阶段 `replaying` 中使用。
@@ -74,8 +82,8 @@
 
 ## 引用
 
-- Go：`go get github.com/brickKit/contract-infra-authz/v3@v3.0.0-alpha.5`，导入 `github.com/brickKit/contract-infra-authz/v3/gen/go/be/authz/v3`。
-- Python（uv）：`contract-infra-authz = { git = "https://github.com/brickKit/contract-infra-authz", tag = "v3.0.0-alpha.5", subdirectory = "python" }`。
+- Go：`go get github.com/brickKit/contract-infra-authz/v3@v3.0.0-alpha.6`，导入 `github.com/brickKit/contract-infra-authz/v3/gen/go/be/authz/v3`。
+- Python（uv）：`contract-infra-authz = { git = "https://github.com/brickKit/contract-infra-authz", tag = "v3.0.0-alpha.6", subdirectory = "python" }`。
 
 运行时的版本：生成代码要求 `google.golang.org/protobuf` v1.36.12 与 grpc-go v1.83.2 起，Python 要求 `protobuf` 7.36.2、`grpcio` 1.84.0 起，与 SDK 锁定的版本一致。
 

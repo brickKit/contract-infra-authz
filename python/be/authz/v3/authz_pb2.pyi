@@ -162,6 +162,42 @@ class CheckAccountChangeResponse(_message.Message):
     administrator: bool
     def __init__(self, verdict: _Optional[_Union[AccountChangeVerdict, str]] = ..., reason: _Optional[str] = ..., administrator: _Optional[bool] = ...) -> None: ...
 
+class CheckLinkChangeRequest(_message.Message):
+    __slots__ = ("employee", "account", "action", "employee_version", "requester", "confirmation")
+    EMPLOYEE_FIELD_NUMBER: _ClassVar[int]
+    ACCOUNT_FIELD_NUMBER: _ClassVar[int]
+    ACTION_FIELD_NUMBER: _ClassVar[int]
+    EMPLOYEE_VERSION_FIELD_NUMBER: _ClassVar[int]
+    REQUESTER_FIELD_NUMBER: _ClassVar[int]
+    CONFIRMATION_FIELD_NUMBER: _ClassVar[int]
+    employee: str
+    account: str
+    action: str
+    employee_version: int
+    requester: str
+    confirmation: str
+    def __init__(self, employee: _Optional[str] = ..., account: _Optional[str] = ..., action: _Optional[str] = ..., employee_version: _Optional[int] = ..., requester: _Optional[str] = ..., confirmation: _Optional[str] = ...) -> None: ...
+
+class CheckLinkChangeResponse(_message.Message):
+    __slots__ = ("verdict", "reason")
+    VERDICT_FIELD_NUMBER: _ClassVar[int]
+    REASON_FIELD_NUMBER: _ClassVar[int]
+    verdict: AccountChangeVerdict
+    reason: str
+    def __init__(self, verdict: _Optional[_Union[AccountChangeVerdict, str]] = ..., reason: _Optional[str] = ...) -> None: ...
+
+class AdministratorsRequest(_message.Message):
+    __slots__ = ("accounts",)
+    ACCOUNTS_FIELD_NUMBER: _ClassVar[int]
+    accounts: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, accounts: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class AdministratorsResponse(_message.Message):
+    __slots__ = ("administrators",)
+    ADMINISTRATORS_FIELD_NUMBER: _ClassVar[int]
+    administrators: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, administrators: _Optional[_Iterable[str]] = ...) -> None: ...
+
 class SourcesRequest(_message.Message):
     __slots__ = ("since",)
     SINCE_FIELD_NUMBER: _ClassVar[int]
