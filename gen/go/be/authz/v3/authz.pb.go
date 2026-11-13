@@ -194,6 +194,174 @@ func (AccountChangeVerdict) EnumDescriptor() ([]byte, []int) {
 	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{2}
 }
 
+type AttachmentCategoriesRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The revision the caller holds; empty for none.
+	KnownRevision string `protobuf:"bytes,1,opt,name=known_revision,json=knownRevision,proto3" json:"known_revision,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AttachmentCategoriesRequest) Reset() {
+	*x = AttachmentCategoriesRequest{}
+	mi := &file_be_authz_v3_authz_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AttachmentCategoriesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttachmentCategoriesRequest) ProtoMessage() {}
+
+func (x *AttachmentCategoriesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_be_authz_v3_authz_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AttachmentCategoriesRequest.ProtoReflect.Descriptor instead.
+func (*AttachmentCategoriesRequest) Descriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *AttachmentCategoriesRequest) GetKnownRevision() string {
+	if x != nil {
+		return x.KnownRevision
+	}
+	return ""
+}
+
+type AttachmentCategoriesResponse struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Revision string                 `protobuf:"bytes,1,opt,name=revision,proto3" json:"revision,omitempty"`
+	// True when known_revision is the current one: resources is then empty.
+	Unchanged     bool                  `protobuf:"varint,2,opt,name=unchanged,proto3" json:"unchanged,omitempty"`
+	Resources     []*ResourceCategories `protobuf:"bytes,3,rep,name=resources,proto3" json:"resources,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AttachmentCategoriesResponse) Reset() {
+	*x = AttachmentCategoriesResponse{}
+	mi := &file_be_authz_v3_authz_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AttachmentCategoriesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttachmentCategoriesResponse) ProtoMessage() {}
+
+func (x *AttachmentCategoriesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_be_authz_v3_authz_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AttachmentCategoriesResponse.ProtoReflect.Descriptor instead.
+func (*AttachmentCategoriesResponse) Descriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *AttachmentCategoriesResponse) GetRevision() string {
+	if x != nil {
+		return x.Revision
+	}
+	return ""
+}
+
+func (x *AttachmentCategoriesResponse) GetUnchanged() bool {
+	if x != nil {
+		return x.Unchanged
+	}
+	return false
+}
+
+func (x *AttachmentCategoriesResponse) GetResources() []*ResourceCategories {
+	if x != nil {
+		return x.Resources
+	}
+	return nil
+}
+
+type ResourceCategories struct {
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	ResourceType string                 `protobuf:"bytes,1,opt,name=resource_type,json=resourceType,proto3" json:"resource_type,omitempty"`
+	// The component the resource type is registered to: the only one that may ask for its attachments' credentials.
+	OwnerComponent string `protobuf:"bytes,2,opt,name=owner_component,json=ownerComponent,proto3" json:"owner_component,omitempty"`
+	// The definition's attachment_categories object, as canonical JSON.
+	CategoriesJson []byte `protobuf:"bytes,3,opt,name=categories_json,json=categoriesJson,proto3" json:"categories_json,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ResourceCategories) Reset() {
+	*x = ResourceCategories{}
+	mi := &file_be_authz_v3_authz_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResourceCategories) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResourceCategories) ProtoMessage() {}
+
+func (x *ResourceCategories) ProtoReflect() protoreflect.Message {
+	mi := &file_be_authz_v3_authz_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResourceCategories.ProtoReflect.Descriptor instead.
+func (*ResourceCategories) Descriptor() ([]byte, []int) {
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ResourceCategories) GetResourceType() string {
+	if x != nil {
+		return x.ResourceType
+	}
+	return ""
+}
+
+func (x *ResourceCategories) GetOwnerComponent() string {
+	if x != nil {
+		return x.OwnerComponent
+	}
+	return ""
+}
+
+func (x *ResourceCategories) GetCategoriesJson() []byte {
+	if x != nil {
+		return x.CategoriesJson
+	}
+	return nil
+}
+
 // RevisionRef is security 09a's RevisionRef.
 type RevisionRef struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
@@ -209,7 +377,7 @@ type RevisionRef struct {
 
 func (x *RevisionRef) Reset() {
 	*x = RevisionRef{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[0]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -221,7 +389,7 @@ func (x *RevisionRef) String() string {
 func (*RevisionRef) ProtoMessage() {}
 
 func (x *RevisionRef) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[0]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -234,7 +402,7 @@ func (x *RevisionRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevisionRef.ProtoReflect.Descriptor instead.
 func (*RevisionRef) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{0}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *RevisionRef) GetDomain() string {
@@ -276,7 +444,7 @@ type HeldShard struct {
 
 func (x *HeldShard) Reset() {
 	*x = HeldShard{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[1]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -288,7 +456,7 @@ func (x *HeldShard) String() string {
 func (*HeldShard) ProtoMessage() {}
 
 func (x *HeldShard) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[1]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -301,7 +469,7 @@ func (x *HeldShard) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HeldShard.ProtoReflect.Descriptor instead.
 func (*HeldShard) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{1}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *HeldShard) GetShard() string {
@@ -331,7 +499,7 @@ type VerifyRequest struct {
 
 func (x *VerifyRequest) Reset() {
 	*x = VerifyRequest{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[2]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -343,7 +511,7 @@ func (x *VerifyRequest) String() string {
 func (*VerifyRequest) ProtoMessage() {}
 
 func (x *VerifyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[2]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -356,7 +524,7 @@ func (x *VerifyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyRequest.ProtoReflect.Descriptor instead.
 func (*VerifyRequest) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{2}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *VerifyRequest) GetComponent() string {
@@ -397,7 +565,7 @@ type ShardAnswer struct {
 
 func (x *ShardAnswer) Reset() {
 	*x = ShardAnswer{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[3]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -409,7 +577,7 @@ func (x *ShardAnswer) String() string {
 func (*ShardAnswer) ProtoMessage() {}
 
 func (x *ShardAnswer) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[3]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -422,7 +590,7 @@ func (x *ShardAnswer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShardAnswer.ProtoReflect.Descriptor instead.
 func (*ShardAnswer) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{3}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ShardAnswer) GetShard() string {
@@ -477,7 +645,7 @@ type VerifyResponse struct {
 
 func (x *VerifyResponse) Reset() {
 	*x = VerifyResponse{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[4]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -489,7 +657,7 @@ func (x *VerifyResponse) String() string {
 func (*VerifyResponse) ProtoMessage() {}
 
 func (x *VerifyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[4]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -502,7 +670,7 @@ func (x *VerifyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyResponse.ProtoReflect.Descriptor instead.
 func (*VerifyResponse) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{4}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *VerifyResponse) GetNonce() string {
@@ -553,7 +721,7 @@ type Definition struct {
 
 func (x *Definition) Reset() {
 	*x = Definition{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[5]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -565,7 +733,7 @@ func (x *Definition) String() string {
 func (*Definition) ProtoMessage() {}
 
 func (x *Definition) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[5]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -578,7 +746,7 @@ func (x *Definition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Definition.ProtoReflect.Descriptor instead.
 func (*Definition) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{5}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Definition) GetRecord() []byte {
@@ -610,7 +778,7 @@ type SubmitRequest struct {
 
 func (x *SubmitRequest) Reset() {
 	*x = SubmitRequest{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[6]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -622,7 +790,7 @@ func (x *SubmitRequest) String() string {
 func (*SubmitRequest) ProtoMessage() {}
 
 func (x *SubmitRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[6]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -635,7 +803,7 @@ func (x *SubmitRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitRequest.ProtoReflect.Descriptor instead.
 func (*SubmitRequest) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{6}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *SubmitRequest) GetComponent() string {
@@ -674,7 +842,7 @@ type Rejection struct {
 
 func (x *Rejection) Reset() {
 	*x = Rejection{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[7]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -686,7 +854,7 @@ func (x *Rejection) String() string {
 func (*Rejection) ProtoMessage() {}
 
 func (x *Rejection) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[7]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -699,7 +867,7 @@ func (x *Rejection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Rejection.ProtoReflect.Descriptor instead.
 func (*Rejection) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{7}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Rejection) GetDigest() string {
@@ -737,7 +905,7 @@ type SubmitResponse struct {
 
 func (x *SubmitResponse) Reset() {
 	*x = SubmitResponse{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[8]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -749,7 +917,7 @@ func (x *SubmitResponse) String() string {
 func (*SubmitResponse) ProtoMessage() {}
 
 func (x *SubmitResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[8]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -762,7 +930,7 @@ func (x *SubmitResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitResponse.ProtoReflect.Descriptor instead.
 func (*SubmitResponse) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{8}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *SubmitResponse) GetStatus() SubmitStatus {
@@ -808,7 +976,7 @@ type CheckAccountChangeRequest struct {
 
 func (x *CheckAccountChangeRequest) Reset() {
 	*x = CheckAccountChangeRequest{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[9]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -820,7 +988,7 @@ func (x *CheckAccountChangeRequest) String() string {
 func (*CheckAccountChangeRequest) ProtoMessage() {}
 
 func (x *CheckAccountChangeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[9]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -833,7 +1001,7 @@ func (x *CheckAccountChangeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckAccountChangeRequest.ProtoReflect.Descriptor instead.
 func (*CheckAccountChangeRequest) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{9}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CheckAccountChangeRequest) GetAccount() string {
@@ -892,7 +1060,7 @@ type CheckAccountChangeResponse struct {
 
 func (x *CheckAccountChangeResponse) Reset() {
 	*x = CheckAccountChangeResponse{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[10]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -904,7 +1072,7 @@ func (x *CheckAccountChangeResponse) String() string {
 func (*CheckAccountChangeResponse) ProtoMessage() {}
 
 func (x *CheckAccountChangeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[10]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -917,7 +1085,7 @@ func (x *CheckAccountChangeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckAccountChangeResponse.ProtoReflect.Descriptor instead.
 func (*CheckAccountChangeResponse) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{10}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CheckAccountChangeResponse) GetVerdict() AccountChangeVerdict {
@@ -962,7 +1130,7 @@ type CheckLinkChangeRequest struct {
 
 func (x *CheckLinkChangeRequest) Reset() {
 	*x = CheckLinkChangeRequest{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[11]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -974,7 +1142,7 @@ func (x *CheckLinkChangeRequest) String() string {
 func (*CheckLinkChangeRequest) ProtoMessage() {}
 
 func (x *CheckLinkChangeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[11]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -987,7 +1155,7 @@ func (x *CheckLinkChangeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckLinkChangeRequest.ProtoReflect.Descriptor instead.
 func (*CheckLinkChangeRequest) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{11}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CheckLinkChangeRequest) GetEmployee() string {
@@ -1046,7 +1214,7 @@ type CheckLinkChangeResponse struct {
 
 func (x *CheckLinkChangeResponse) Reset() {
 	*x = CheckLinkChangeResponse{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[12]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1058,7 +1226,7 @@ func (x *CheckLinkChangeResponse) String() string {
 func (*CheckLinkChangeResponse) ProtoMessage() {}
 
 func (x *CheckLinkChangeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[12]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1071,7 +1239,7 @@ func (x *CheckLinkChangeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckLinkChangeResponse.ProtoReflect.Descriptor instead.
 func (*CheckLinkChangeResponse) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{12}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *CheckLinkChangeResponse) GetVerdict() AccountChangeVerdict {
@@ -1098,7 +1266,7 @@ type AdministratorsRequest struct {
 
 func (x *AdministratorsRequest) Reset() {
 	*x = AdministratorsRequest{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[13]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1110,7 +1278,7 @@ func (x *AdministratorsRequest) String() string {
 func (*AdministratorsRequest) ProtoMessage() {}
 
 func (x *AdministratorsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[13]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1123,7 +1291,7 @@ func (x *AdministratorsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdministratorsRequest.ProtoReflect.Descriptor instead.
 func (*AdministratorsRequest) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{13}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *AdministratorsRequest) GetAccounts() []string {
@@ -1143,7 +1311,7 @@ type AdministratorsResponse struct {
 
 func (x *AdministratorsResponse) Reset() {
 	*x = AdministratorsResponse{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[14]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1155,7 +1323,7 @@ func (x *AdministratorsResponse) String() string {
 func (*AdministratorsResponse) ProtoMessage() {}
 
 func (x *AdministratorsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[14]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1168,7 +1336,7 @@ func (x *AdministratorsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdministratorsResponse.ProtoReflect.Descriptor instead.
 func (*AdministratorsResponse) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{14}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *AdministratorsResponse) GetAdministrators() []string {
@@ -1188,7 +1356,7 @@ type SourcesRequest struct {
 
 func (x *SourcesRequest) Reset() {
 	*x = SourcesRequest{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[15]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1200,7 +1368,7 @@ func (x *SourcesRequest) String() string {
 func (*SourcesRequest) ProtoMessage() {}
 
 func (x *SourcesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[15]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1213,7 +1381,7 @@ func (x *SourcesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SourcesRequest.ProtoReflect.Descriptor instead.
 func (*SourcesRequest) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{15}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *SourcesRequest) GetSince() string {
@@ -1238,7 +1406,7 @@ type SourceState struct {
 
 func (x *SourceState) Reset() {
 	*x = SourceState{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[16]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1250,7 +1418,7 @@ func (x *SourceState) String() string {
 func (*SourceState) ProtoMessage() {}
 
 func (x *SourceState) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[16]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1263,7 +1431,7 @@ func (x *SourceState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SourceState.ProtoReflect.Descriptor instead.
 func (*SourceState) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{16}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *SourceState) GetComponent() string {
@@ -1307,7 +1475,7 @@ type SourcesResponse struct {
 
 func (x *SourcesResponse) Reset() {
 	*x = SourcesResponse{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[17]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1319,7 +1487,7 @@ func (x *SourcesResponse) String() string {
 func (*SourcesResponse) ProtoMessage() {}
 
 func (x *SourcesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[17]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1332,7 +1500,7 @@ func (x *SourcesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SourcesResponse.ProtoReflect.Descriptor instead.
 func (*SourcesResponse) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{17}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *SourcesResponse) GetAsOf() string {
@@ -1368,7 +1536,7 @@ type ReplayDeferredRequest struct {
 
 func (x *ReplayDeferredRequest) Reset() {
 	*x = ReplayDeferredRequest{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[18]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1380,7 +1548,7 @@ func (x *ReplayDeferredRequest) String() string {
 func (*ReplayDeferredRequest) ProtoMessage() {}
 
 func (x *ReplayDeferredRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[18]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1393,7 +1561,7 @@ func (x *ReplayDeferredRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReplayDeferredRequest.ProtoReflect.Descriptor instead.
 func (*ReplayDeferredRequest) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{18}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ReplayDeferredRequest) GetRecord() []byte {
@@ -1422,7 +1590,7 @@ type ReplayDeferredResponse struct {
 
 func (x *ReplayDeferredResponse) Reset() {
 	*x = ReplayDeferredResponse{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[19]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1434,7 +1602,7 @@ func (x *ReplayDeferredResponse) String() string {
 func (*ReplayDeferredResponse) ProtoMessage() {}
 
 func (x *ReplayDeferredResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[19]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1447,7 +1615,7 @@ func (x *ReplayDeferredResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReplayDeferredResponse.ProtoReflect.Descriptor instead.
 func (*ReplayDeferredResponse) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{19}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ReplayDeferredResponse) GetOutcome() string {
@@ -1477,7 +1645,7 @@ type CheckRequest struct {
 
 func (x *CheckRequest) Reset() {
 	*x = CheckRequest{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[20]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1489,7 +1657,7 @@ func (x *CheckRequest) String() string {
 func (*CheckRequest) ProtoMessage() {}
 
 func (x *CheckRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[20]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1502,7 +1670,7 @@ func (x *CheckRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckRequest.ProtoReflect.Descriptor instead.
 func (*CheckRequest) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{20}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *CheckRequest) GetRecovery() string {
@@ -1539,7 +1707,7 @@ type CheckResponse struct {
 
 func (x *CheckResponse) Reset() {
 	*x = CheckResponse{}
-	mi := &file_be_authz_v3_authz_proto_msgTypes[21]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1551,7 +1719,7 @@ func (x *CheckResponse) String() string {
 func (*CheckResponse) ProtoMessage() {}
 
 func (x *CheckResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_be_authz_v3_authz_proto_msgTypes[21]
+	mi := &file_be_authz_v3_authz_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1564,7 +1732,7 @@ func (x *CheckResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckResponse.ProtoReflect.Descriptor instead.
 func (*CheckResponse) Descriptor() ([]byte, []int) {
-	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{21}
+	return file_be_authz_v3_authz_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *CheckResponse) GetAdminState() string {
@@ -1620,7 +1788,17 @@ var File_be_authz_v3_authz_proto protoreflect.FileDescriptor
 
 const file_be_authz_v3_authz_proto_rawDesc = "" +
 	"\n" +
-	"\x17be/authz/v3/authz.proto\x12\vbe.authz.v3\"m\n" +
+	"\x17be/authz/v3/authz.proto\x12\vbe.authz.v3\"D\n" +
+	"\x1bAttachmentCategoriesRequest\x12%\n" +
+	"\x0eknown_revision\x18\x01 \x01(\tR\rknownRevision\"\x97\x01\n" +
+	"\x1cAttachmentCategoriesResponse\x12\x1a\n" +
+	"\brevision\x18\x01 \x01(\tR\brevision\x12\x1c\n" +
+	"\tunchanged\x18\x02 \x01(\bR\tunchanged\x12=\n" +
+	"\tresources\x18\x03 \x03(\v2\x1f.be.authz.v3.ResourceCategoriesR\tresources\"\x8b\x01\n" +
+	"\x12ResourceCategories\x12#\n" +
+	"\rresource_type\x18\x01 \x01(\tR\fresourceType\x12'\n" +
+	"\x0fowner_component\x18\x02 \x01(\tR\x0eownerComponent\x12'\n" +
+	"\x0fcategories_json\x18\x03 \x01(\fR\x0ecategoriesJson\"m\n" +
 	"\vRevisionRef\x12\x16\n" +
 	"\x06domain\x18\x01 \x01(\tR\x06domain\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value\x12\x14\n" +
@@ -1744,7 +1922,9 @@ const file_be_authz_v3_authz_proto_rawDesc = "" +
 	"\x0eAccountService\x12e\n" +
 	"\x12CheckAccountChange\x12&.be.authz.v3.CheckAccountChangeRequest\x1a'.be.authz.v3.CheckAccountChangeResponse\x12\\\n" +
 	"\x0fCheckLinkChange\x12#.be.authz.v3.CheckLinkChangeRequest\x1a$.be.authz.v3.CheckLinkChangeResponse\x12Y\n" +
-	"\x0eAdministrators\x12\".be.authz.v3.AdministratorsRequest\x1a#.be.authz.v3.AdministratorsResponse2\xf2\x01\n" +
+	"\x0eAdministrators\x12\".be.authz.v3.AdministratorsRequest\x1a#.be.authz.v3.AdministratorsResponse2}\n" +
+	"\x0eCatalogService\x12k\n" +
+	"\x14AttachmentCategories\x12(.be.authz.v3.AttachmentCategoriesRequest\x1a).be.authz.v3.AttachmentCategoriesResponse2\xf2\x01\n" +
 	"\x0fRecoveryService\x12D\n" +
 	"\aSources\x12\x1b.be.authz.v3.SourcesRequest\x1a\x1c.be.authz.v3.SourcesResponse\x12Y\n" +
 	"\x0eReplayDeferred\x12\".be.authz.v3.ReplayDeferredRequest\x1a#.be.authz.v3.ReplayDeferredResponse\x12>\n" +
@@ -1763,66 +1943,72 @@ func file_be_authz_v3_authz_proto_rawDescGZIP() []byte {
 }
 
 var file_be_authz_v3_authz_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_be_authz_v3_authz_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_be_authz_v3_authz_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_be_authz_v3_authz_proto_goTypes = []any{
-	(ShardStatus)(0),                   // 0: be.authz.v3.ShardStatus
-	(SubmitStatus)(0),                  // 1: be.authz.v3.SubmitStatus
-	(AccountChangeVerdict)(0),          // 2: be.authz.v3.AccountChangeVerdict
-	(*RevisionRef)(nil),                // 3: be.authz.v3.RevisionRef
-	(*HeldShard)(nil),                  // 4: be.authz.v3.HeldShard
-	(*VerifyRequest)(nil),              // 5: be.authz.v3.VerifyRequest
-	(*ShardAnswer)(nil),                // 6: be.authz.v3.ShardAnswer
-	(*VerifyResponse)(nil),             // 7: be.authz.v3.VerifyResponse
-	(*Definition)(nil),                 // 8: be.authz.v3.Definition
-	(*SubmitRequest)(nil),              // 9: be.authz.v3.SubmitRequest
-	(*Rejection)(nil),                  // 10: be.authz.v3.Rejection
-	(*SubmitResponse)(nil),             // 11: be.authz.v3.SubmitResponse
-	(*CheckAccountChangeRequest)(nil),  // 12: be.authz.v3.CheckAccountChangeRequest
-	(*CheckAccountChangeResponse)(nil), // 13: be.authz.v3.CheckAccountChangeResponse
-	(*CheckLinkChangeRequest)(nil),     // 14: be.authz.v3.CheckLinkChangeRequest
-	(*CheckLinkChangeResponse)(nil),    // 15: be.authz.v3.CheckLinkChangeResponse
-	(*AdministratorsRequest)(nil),      // 16: be.authz.v3.AdministratorsRequest
-	(*AdministratorsResponse)(nil),     // 17: be.authz.v3.AdministratorsResponse
-	(*SourcesRequest)(nil),             // 18: be.authz.v3.SourcesRequest
-	(*SourceState)(nil),                // 19: be.authz.v3.SourceState
-	(*SourcesResponse)(nil),            // 20: be.authz.v3.SourcesResponse
-	(*ReplayDeferredRequest)(nil),      // 21: be.authz.v3.ReplayDeferredRequest
-	(*ReplayDeferredResponse)(nil),     // 22: be.authz.v3.ReplayDeferredResponse
-	(*CheckRequest)(nil),               // 23: be.authz.v3.CheckRequest
-	(*CheckResponse)(nil),              // 24: be.authz.v3.CheckResponse
+	(ShardStatus)(0),                     // 0: be.authz.v3.ShardStatus
+	(SubmitStatus)(0),                    // 1: be.authz.v3.SubmitStatus
+	(AccountChangeVerdict)(0),            // 2: be.authz.v3.AccountChangeVerdict
+	(*AttachmentCategoriesRequest)(nil),  // 3: be.authz.v3.AttachmentCategoriesRequest
+	(*AttachmentCategoriesResponse)(nil), // 4: be.authz.v3.AttachmentCategoriesResponse
+	(*ResourceCategories)(nil),           // 5: be.authz.v3.ResourceCategories
+	(*RevisionRef)(nil),                  // 6: be.authz.v3.RevisionRef
+	(*HeldShard)(nil),                    // 7: be.authz.v3.HeldShard
+	(*VerifyRequest)(nil),                // 8: be.authz.v3.VerifyRequest
+	(*ShardAnswer)(nil),                  // 9: be.authz.v3.ShardAnswer
+	(*VerifyResponse)(nil),               // 10: be.authz.v3.VerifyResponse
+	(*Definition)(nil),                   // 11: be.authz.v3.Definition
+	(*SubmitRequest)(nil),                // 12: be.authz.v3.SubmitRequest
+	(*Rejection)(nil),                    // 13: be.authz.v3.Rejection
+	(*SubmitResponse)(nil),               // 14: be.authz.v3.SubmitResponse
+	(*CheckAccountChangeRequest)(nil),    // 15: be.authz.v3.CheckAccountChangeRequest
+	(*CheckAccountChangeResponse)(nil),   // 16: be.authz.v3.CheckAccountChangeResponse
+	(*CheckLinkChangeRequest)(nil),       // 17: be.authz.v3.CheckLinkChangeRequest
+	(*CheckLinkChangeResponse)(nil),      // 18: be.authz.v3.CheckLinkChangeResponse
+	(*AdministratorsRequest)(nil),        // 19: be.authz.v3.AdministratorsRequest
+	(*AdministratorsResponse)(nil),       // 20: be.authz.v3.AdministratorsResponse
+	(*SourcesRequest)(nil),               // 21: be.authz.v3.SourcesRequest
+	(*SourceState)(nil),                  // 22: be.authz.v3.SourceState
+	(*SourcesResponse)(nil),              // 23: be.authz.v3.SourcesResponse
+	(*ReplayDeferredRequest)(nil),        // 24: be.authz.v3.ReplayDeferredRequest
+	(*ReplayDeferredResponse)(nil),       // 25: be.authz.v3.ReplayDeferredResponse
+	(*CheckRequest)(nil),                 // 26: be.authz.v3.CheckRequest
+	(*CheckResponse)(nil),                // 27: be.authz.v3.CheckResponse
 }
 var file_be_authz_v3_authz_proto_depIdxs = []int32{
-	4,  // 0: be.authz.v3.VerifyRequest.held:type_name -> be.authz.v3.HeldShard
-	0,  // 1: be.authz.v3.ShardAnswer.status:type_name -> be.authz.v3.ShardStatus
-	3,  // 2: be.authz.v3.VerifyResponse.recovery_generation:type_name -> be.authz.v3.RevisionRef
-	6,  // 3: be.authz.v3.VerifyResponse.shards:type_name -> be.authz.v3.ShardAnswer
-	8,  // 4: be.authz.v3.SubmitRequest.definitions:type_name -> be.authz.v3.Definition
-	1,  // 5: be.authz.v3.SubmitResponse.status:type_name -> be.authz.v3.SubmitStatus
-	10, // 6: be.authz.v3.SubmitResponse.rejections:type_name -> be.authz.v3.Rejection
-	2,  // 7: be.authz.v3.CheckAccountChangeResponse.verdict:type_name -> be.authz.v3.AccountChangeVerdict
-	2,  // 8: be.authz.v3.CheckLinkChangeResponse.verdict:type_name -> be.authz.v3.AccountChangeVerdict
-	19, // 9: be.authz.v3.SourcesResponse.sources:type_name -> be.authz.v3.SourceState
-	5,  // 10: be.authz.v3.ViewService.Verify:input_type -> be.authz.v3.VerifyRequest
-	9,  // 11: be.authz.v3.DefinitionService.Submit:input_type -> be.authz.v3.SubmitRequest
-	12, // 12: be.authz.v3.AccountService.CheckAccountChange:input_type -> be.authz.v3.CheckAccountChangeRequest
-	14, // 13: be.authz.v3.AccountService.CheckLinkChange:input_type -> be.authz.v3.CheckLinkChangeRequest
-	16, // 14: be.authz.v3.AccountService.Administrators:input_type -> be.authz.v3.AdministratorsRequest
-	18, // 15: be.authz.v3.RecoveryService.Sources:input_type -> be.authz.v3.SourcesRequest
-	21, // 16: be.authz.v3.RecoveryService.ReplayDeferred:input_type -> be.authz.v3.ReplayDeferredRequest
-	23, // 17: be.authz.v3.RecoveryService.Check:input_type -> be.authz.v3.CheckRequest
-	7,  // 18: be.authz.v3.ViewService.Verify:output_type -> be.authz.v3.VerifyResponse
-	11, // 19: be.authz.v3.DefinitionService.Submit:output_type -> be.authz.v3.SubmitResponse
-	13, // 20: be.authz.v3.AccountService.CheckAccountChange:output_type -> be.authz.v3.CheckAccountChangeResponse
-	15, // 21: be.authz.v3.AccountService.CheckLinkChange:output_type -> be.authz.v3.CheckLinkChangeResponse
-	17, // 22: be.authz.v3.AccountService.Administrators:output_type -> be.authz.v3.AdministratorsResponse
-	20, // 23: be.authz.v3.RecoveryService.Sources:output_type -> be.authz.v3.SourcesResponse
-	22, // 24: be.authz.v3.RecoveryService.ReplayDeferred:output_type -> be.authz.v3.ReplayDeferredResponse
-	24, // 25: be.authz.v3.RecoveryService.Check:output_type -> be.authz.v3.CheckResponse
-	18, // [18:26] is the sub-list for method output_type
-	10, // [10:18] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	5,  // 0: be.authz.v3.AttachmentCategoriesResponse.resources:type_name -> be.authz.v3.ResourceCategories
+	7,  // 1: be.authz.v3.VerifyRequest.held:type_name -> be.authz.v3.HeldShard
+	0,  // 2: be.authz.v3.ShardAnswer.status:type_name -> be.authz.v3.ShardStatus
+	6,  // 3: be.authz.v3.VerifyResponse.recovery_generation:type_name -> be.authz.v3.RevisionRef
+	9,  // 4: be.authz.v3.VerifyResponse.shards:type_name -> be.authz.v3.ShardAnswer
+	11, // 5: be.authz.v3.SubmitRequest.definitions:type_name -> be.authz.v3.Definition
+	1,  // 6: be.authz.v3.SubmitResponse.status:type_name -> be.authz.v3.SubmitStatus
+	13, // 7: be.authz.v3.SubmitResponse.rejections:type_name -> be.authz.v3.Rejection
+	2,  // 8: be.authz.v3.CheckAccountChangeResponse.verdict:type_name -> be.authz.v3.AccountChangeVerdict
+	2,  // 9: be.authz.v3.CheckLinkChangeResponse.verdict:type_name -> be.authz.v3.AccountChangeVerdict
+	22, // 10: be.authz.v3.SourcesResponse.sources:type_name -> be.authz.v3.SourceState
+	8,  // 11: be.authz.v3.ViewService.Verify:input_type -> be.authz.v3.VerifyRequest
+	12, // 12: be.authz.v3.DefinitionService.Submit:input_type -> be.authz.v3.SubmitRequest
+	15, // 13: be.authz.v3.AccountService.CheckAccountChange:input_type -> be.authz.v3.CheckAccountChangeRequest
+	17, // 14: be.authz.v3.AccountService.CheckLinkChange:input_type -> be.authz.v3.CheckLinkChangeRequest
+	19, // 15: be.authz.v3.AccountService.Administrators:input_type -> be.authz.v3.AdministratorsRequest
+	3,  // 16: be.authz.v3.CatalogService.AttachmentCategories:input_type -> be.authz.v3.AttachmentCategoriesRequest
+	21, // 17: be.authz.v3.RecoveryService.Sources:input_type -> be.authz.v3.SourcesRequest
+	24, // 18: be.authz.v3.RecoveryService.ReplayDeferred:input_type -> be.authz.v3.ReplayDeferredRequest
+	26, // 19: be.authz.v3.RecoveryService.Check:input_type -> be.authz.v3.CheckRequest
+	10, // 20: be.authz.v3.ViewService.Verify:output_type -> be.authz.v3.VerifyResponse
+	14, // 21: be.authz.v3.DefinitionService.Submit:output_type -> be.authz.v3.SubmitResponse
+	16, // 22: be.authz.v3.AccountService.CheckAccountChange:output_type -> be.authz.v3.CheckAccountChangeResponse
+	18, // 23: be.authz.v3.AccountService.CheckLinkChange:output_type -> be.authz.v3.CheckLinkChangeResponse
+	20, // 24: be.authz.v3.AccountService.Administrators:output_type -> be.authz.v3.AdministratorsResponse
+	4,  // 25: be.authz.v3.CatalogService.AttachmentCategories:output_type -> be.authz.v3.AttachmentCategoriesResponse
+	23, // 26: be.authz.v3.RecoveryService.Sources:output_type -> be.authz.v3.SourcesResponse
+	25, // 27: be.authz.v3.RecoveryService.ReplayDeferred:output_type -> be.authz.v3.ReplayDeferredResponse
+	27, // 28: be.authz.v3.RecoveryService.Check:output_type -> be.authz.v3.CheckResponse
+	20, // [20:29] is the sub-list for method output_type
+	11, // [11:20] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_be_authz_v3_authz_proto_init() }
@@ -1836,9 +2022,9 @@ func file_be_authz_v3_authz_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_be_authz_v3_authz_proto_rawDesc), len(file_be_authz_v3_authz_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   22,
+			NumMessages:   25,
 			NumExtensions: 0,
-			NumServices:   4,
+			NumServices:   5,
 		},
 		GoTypes:           file_be_authz_v3_authz_proto_goTypes,
 		DependencyIndexes: file_be_authz_v3_authz_proto_depIdxs,

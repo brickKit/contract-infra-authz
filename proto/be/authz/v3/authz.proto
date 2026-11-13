@@ -39,6 +39,36 @@ service AccountService {
   rpc Administrators(AdministratorsRequest) returns (AdministratorsResponse);
 }
 
+// CatalogService answers what the accepted definitions declare for other infrastructure members (alpha.7).
+service CatalogService {
+  // AttachmentCategories answers every resource type whose current definition declares attachment categories, with
+  // its owner component and the categories (security 09a's attachment_categories, canonical JSON), and the catalog's
+  // revision; given the revision the caller holds, it answers unchanged when nothing changed. Callers: the attachment
+  // member (infra/attachment) only; idempotent (assembly protocol 12: the categories reach the attachment member
+  // through this catalog, so a new business component never changes it).
+  rpc AttachmentCategories(AttachmentCategoriesRequest) returns (AttachmentCategoriesResponse);
+}
+
+message AttachmentCategoriesRequest {
+  // The revision the caller holds; empty for none.
+  string known_revision = 1;
+}
+
+message AttachmentCategoriesResponse {
+  string revision = 1;
+  // True when known_revision is the current one: resources is then empty.
+  bool unchanged = 2;
+  repeated ResourceCategories resources = 3;
+}
+
+message ResourceCategories {
+  string resource_type = 1;
+  // The component the resource type is registered to: the only one that may ask for its attachments' credentials.
+  string owner_component = 2;
+  // The definition's attachment_categories object, as canonical JSON.
+  bytes categories_json = 3;
+}
+
 service RecoveryService {
   // Sources answers whether this member has applied its sources up to a moment (assembly protocol 15, 6.4: the
   // replay of the sources is applied before the invariants are checked). The first call (since empty) answers the

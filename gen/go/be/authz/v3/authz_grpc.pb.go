@@ -446,6 +446,122 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
+	CatalogService_AttachmentCategories_FullMethodName = "/be.authz.v3.CatalogService/AttachmentCategories"
+)
+
+// CatalogServiceClient is the client API for CatalogService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// CatalogService answers what the accepted definitions declare for other infrastructure members (alpha.7).
+type CatalogServiceClient interface {
+	// AttachmentCategories answers every resource type whose current definition declares attachment categories, with
+	// its owner component and the categories (security 09a's attachment_categories, canonical JSON), and the catalog's
+	// revision; given the revision the caller holds, it answers unchanged when nothing changed. Callers: the attachment
+	// member (infra/attachment) only; idempotent (assembly protocol 12: the categories reach the attachment member
+	// through this catalog, so a new business component never changes it).
+	AttachmentCategories(ctx context.Context, in *AttachmentCategoriesRequest, opts ...grpc.CallOption) (*AttachmentCategoriesResponse, error)
+}
+
+type catalogServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewCatalogServiceClient(cc grpc.ClientConnInterface) CatalogServiceClient {
+	return &catalogServiceClient{cc}
+}
+
+func (c *catalogServiceClient) AttachmentCategories(ctx context.Context, in *AttachmentCategoriesRequest, opts ...grpc.CallOption) (*AttachmentCategoriesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AttachmentCategoriesResponse)
+	err := c.cc.Invoke(ctx, CatalogService_AttachmentCategories_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CatalogServiceServer is the server API for CatalogService service.
+// All implementations must embed UnimplementedCatalogServiceServer
+// for forward compatibility.
+//
+// CatalogService answers what the accepted definitions declare for other infrastructure members (alpha.7).
+type CatalogServiceServer interface {
+	// AttachmentCategories answers every resource type whose current definition declares attachment categories, with
+	// its owner component and the categories (security 09a's attachment_categories, canonical JSON), and the catalog's
+	// revision; given the revision the caller holds, it answers unchanged when nothing changed. Callers: the attachment
+	// member (infra/attachment) only; idempotent (assembly protocol 12: the categories reach the attachment member
+	// through this catalog, so a new business component never changes it).
+	AttachmentCategories(context.Context, *AttachmentCategoriesRequest) (*AttachmentCategoriesResponse, error)
+	mustEmbedUnimplementedCatalogServiceServer()
+}
+
+// UnimplementedCatalogServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedCatalogServiceServer struct{}
+
+func (UnimplementedCatalogServiceServer) AttachmentCategories(context.Context, *AttachmentCategoriesRequest) (*AttachmentCategoriesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AttachmentCategories not implemented")
+}
+func (UnimplementedCatalogServiceServer) mustEmbedUnimplementedCatalogServiceServer() {}
+func (UnimplementedCatalogServiceServer) testEmbeddedByValue()                        {}
+
+// UnsafeCatalogServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to CatalogServiceServer will
+// result in compilation errors.
+type UnsafeCatalogServiceServer interface {
+	mustEmbedUnimplementedCatalogServiceServer()
+}
+
+func RegisterCatalogServiceServer(s grpc.ServiceRegistrar, srv CatalogServiceServer) {
+	// If the following call panics, it indicates UnimplementedCatalogServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&CatalogService_ServiceDesc, srv)
+}
+
+func _CatalogService_AttachmentCategories_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AttachmentCategoriesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CatalogServiceServer).AttachmentCategories(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CatalogService_AttachmentCategories_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CatalogServiceServer).AttachmentCategories(ctx, req.(*AttachmentCategoriesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// CatalogService_ServiceDesc is the grpc.ServiceDesc for CatalogService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var CatalogService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "be.authz.v3.CatalogService",
+	HandlerType: (*CatalogServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AttachmentCategories",
+			Handler:    _CatalogService_AttachmentCategories_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "be/authz/v3/authz.proto",
+}
+
+const (
 	RecoveryService_Sources_FullMethodName        = "/be.authz.v3.RecoveryService/Sources"
 	RecoveryService_ReplayDeferred_FullMethodName = "/be.authz.v3.RecoveryService/ReplayDeferred"
 	RecoveryService_Check_FullMethodName          = "/be.authz.v3.RecoveryService/Check"

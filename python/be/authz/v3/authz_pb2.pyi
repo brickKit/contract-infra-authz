@@ -40,6 +40,32 @@ ACCOUNT_CHANGE_VERDICT_CONFIRMATION_REQUIRED: AccountChangeVerdict
 ACCOUNT_CHANGE_VERDICT_REFUSED: AccountChangeVerdict
 ACCOUNT_CHANGE_VERDICT_UNPROVABLE: AccountChangeVerdict
 
+class AttachmentCategoriesRequest(_message.Message):
+    __slots__ = ("known_revision",)
+    KNOWN_REVISION_FIELD_NUMBER: _ClassVar[int]
+    known_revision: str
+    def __init__(self, known_revision: _Optional[str] = ...) -> None: ...
+
+class AttachmentCategoriesResponse(_message.Message):
+    __slots__ = ("revision", "unchanged", "resources")
+    REVISION_FIELD_NUMBER: _ClassVar[int]
+    UNCHANGED_FIELD_NUMBER: _ClassVar[int]
+    RESOURCES_FIELD_NUMBER: _ClassVar[int]
+    revision: str
+    unchanged: bool
+    resources: _containers.RepeatedCompositeFieldContainer[ResourceCategories]
+    def __init__(self, revision: _Optional[str] = ..., unchanged: _Optional[bool] = ..., resources: _Optional[_Iterable[_Union[ResourceCategories, _Mapping]]] = ...) -> None: ...
+
+class ResourceCategories(_message.Message):
+    __slots__ = ("resource_type", "owner_component", "categories_json")
+    RESOURCE_TYPE_FIELD_NUMBER: _ClassVar[int]
+    OWNER_COMPONENT_FIELD_NUMBER: _ClassVar[int]
+    CATEGORIES_JSON_FIELD_NUMBER: _ClassVar[int]
+    resource_type: str
+    owner_component: str
+    categories_json: bytes
+    def __init__(self, resource_type: _Optional[str] = ..., owner_component: _Optional[str] = ..., categories_json: _Optional[bytes] = ...) -> None: ...
+
 class RevisionRef(_message.Message):
     __slots__ = ("domain", "value", "epoch", "instance")
     DOMAIN_FIELD_NUMBER: _ClassVar[int]
