@@ -8,7 +8,7 @@
 
 | 位置 | 是什么 |
 | --- | --- |
-| `proto/be/authz/v3/authz.proto` | 五个服务：`ViewService.Verify`（核验视图）、`DefinitionService.Submit`（提交定义）、`AccountService.CheckAccountChange`（账号状态变更前的确认，alpha.3 起）、`AccountService.CheckLinkChange` 与 `Administrators`（员工成员的账号关联与最后管理员的提示，alpha.6 起）、`RecoveryService`（整套恢复的 6.4–6.5，alpha.5 起）、`CatalogService.AttachmentCategories`（附件类别目录，alpha.7 起） |
+| `proto/be/authz/v3/authz.proto` | 五个服务（用户面的标准读取见下文的“授权成员的义务”）：`ViewService.Verify`（核验视图）、`DefinitionService.Submit`（提交定义）、`AccountService.CheckAccountChange`（账号状态变更前的确认，alpha.3 起）、`AccountService.CheckLinkChange` 与 `Administrators`（员工成员的账号关联与最后管理员的提示，alpha.6 起）、`RecoveryService`（整套恢复的 6.4–6.5，alpha.5 起）、`CatalogService.AttachmentCategories`（附件类别目录，alpha.7 起） |
 | `gen/go/be/authz/v3/` | Go 代码，包 `authzv3`（消息与 gRPC 桩），提交在仓库里 |
 | `python/` | Python 包 `contract-infra-authz`，模块 `be.authz.v3`（`authz_pb2`、`authz_pb2_grpc`）；`be` 是各契约包共用的命名空间，没有 `__init__.py` |
 
@@ -75,6 +75,15 @@
 1. **准入**：只许部署配置的附件成员调用（服务身份）。
 2. **内容**：每个组件现在用的定义版本里，声明了 `attachment_categories` 的资源定义：资源类型、它在注册表里登记的属主组件、类别（规范 JSON）。
 3. **修订**：目录的修订是各组件“组件@版本”的摘要；请求带调用方持有的修订，没变答 `unchanged`、不带内容。
+
+### 用户面的标准读取：调用者自己的操作键（alpha.8 起）
+
+前端（PC、移动端、移动聚合）按它显示菜单与按钮（装配项目协议 20 的 `permissions`、A177）。每个授权成员都提供，路径相同，所以前端不随所选成员改变：
+
+1. **路由**：`GET /api/authz/me/operations`，在成员的公网前缀 `/api/authz` 之下（族的前缀：每个授权成员都声明这个前缀，P11.11）。经边缘到达，带调用者自己的令牌。
+2. **授权**：一条普通的声明操作，谁也不用授予：成员给每个持有者（有授予或管理持有资格的主体）一段固定的本人段，与“放弃本人的记录”一样（D82）。调用者没有这段时（没有任何授予），答 `200` 与空集，不答 403 或 404。
+3. **回答**：`{"operations": [<操作键>…]}`，排好序、各一次：调用者此刻在任何组件的有效段里出现的操作键，算法与这个成员发给各组件的视图相同（角色修订仍有效、任职绑定成立、治理单元的上限、键已登记未退役且仍被属主定义、处置没有暂停、账号没有停用）。不带记录的事实，不按法人或维度筛：它只说“可能可以”，每个操作照样在执行处判定。
+4. **证明不了时**：身份来源过旧、视图都不能续发，或调用者的账号状态此刻证明不了，答 `AUTHORIZATION_UNPROVABLE`（503，可重试）；调用者据此保留上次的结果，不当作“没有权限”。
 
 ### `RecoveryService`（alpha.5 起）
 
